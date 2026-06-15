@@ -40,14 +40,14 @@ pm2 start server.js --name "textile-backend"
 echo "🖥️ Starting Static Frontend server under PM2 on port 80..."
 # Using PM2's built-in static file server
 pm2 delete textile-frontend 2>/dev/null || true
-pm2 serve "$FRONTEND_DIR" 80 --name "textile-frontend" --spa
+pm2 serve "$FRONTEND_DIR" 8090 --name "textile-frontend" --spa
 
 pm2 save
 
 echo "🎉 Full System Deployment Successful!"
 echo "--------------------------------------------------------"
-echo "🟢 Backend: Running on http://127.0.0.1:3000 (PM2: textile-backend)"
-echo "🟢 Frontend: Running on http://127.0.0.1:80 (PM2: textile-frontend)"
+echo "🟢 Backend: Running on http://127.0.0.1:8000 (PM2: textile-backend)"
+echo "🟢 Frontend: Running on http://127.0.0.1:8090 (PM2: textile-frontend)"
 echo "--------------------------------------------------------"
 echo "💡 Note: If port 80 fails to start, ensure no other service (like Apache/Nginx) is using it, or run with sudo."
 echo "--------------------------------------------------------"
