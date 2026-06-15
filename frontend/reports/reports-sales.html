@@ -171,7 +171,14 @@
     </div>
 
     <script>
-        const API_BASE = 'http://localhost:8000/api';
+        const API_BASE = (function() {
+            const saved = localStorage.getItem('API_BASE');
+            if (saved) return saved;
+            const backendPort = localStorage.getItem('API_PORT') || '8000';
+            return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? `http://${window.location.hostname}:${backendPort}/api`
+                : 'https://system1-api.jemssoftech.com/api';
+        })();
         let charts = {};
 
         function getToken() {
