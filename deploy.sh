@@ -3,16 +3,17 @@
 # Textile ERP Full System (Backend & Frontend) VPS Deployment Script
 echo "🚀 Starting Textile ERP Full System Deployment..."
 
-# Get the directory where the script is located
+# Get the directory where the script is located (root folder)
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-FRONTEND_DIR="$SCRIPT_DIR/../frontend"
+BACKEND_DIR="$SCRIPT_DIR/backend-node"
+FRONTEND_DIR="$SCRIPT_DIR/frontend"
 
 # 1. Install packages for backend
 echo "📦 Installing npm dependencies for backend..."
-cd "$SCRIPT_DIR"
+cd "$BACKEND_DIR"
 npm install
 
-# 2. Check and Create .env
+# 2. Check and Create .env inside backend-node
 if [ ! -f .env ]; then
   echo "📄 Creating default .env file..."
   cp .env.example .env
@@ -38,7 +39,6 @@ pm2 start server.js --name "textile-backend"
 # 6. Start Frontend server in PM2 (serving static HTML/JS files)
 echo "🖥️ Starting Static Frontend server under PM2 on port 80..."
 # Using PM2's built-in static file server
-# Note: running on port 80 might require root/sudo permissions on the VPS
 pm2 delete textile-frontend 2>/dev/null || true
 pm2 serve "$FRONTEND_DIR" 80 --name "textile-frontend" --spa
 
