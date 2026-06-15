@@ -37,8 +37,8 @@ pm2 delete textile-backend 2>/dev/null || true
 pm2 start server.js --name "textile-backend"
 
 # 6. Start Frontend server in PM2 (serving static HTML/JS files)
-echo "🖥️ Starting Static Frontend server under PM2 on port 80..."
-# Using PM2's built-in static file server
+echo "🖥️ Starting Static Frontend server under PM2 on port 8090..."
+# Using PM2's built-in static file server on port 8090 to match Nginx config
 pm2 delete textile-frontend 2>/dev/null || true
 pm2 serve "$FRONTEND_DIR" 8090 --name "textile-frontend" --spa
 

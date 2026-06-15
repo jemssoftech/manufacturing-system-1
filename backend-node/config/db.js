@@ -30,6 +30,9 @@ async function initDatabase() {
       host: dbHost,
       port: dbPort,
       dialect: 'mysql',
+      dialectOptions: {
+        decimalNumbers: true
+      },
       logging: process.env.NODE_ENV === 'development' ? console.log : false,
       pool: {
         max: 5,
@@ -56,6 +59,9 @@ function getSequelize() {
       host: dbHost,
       port: dbPort,
       dialect: 'mysql',
+      dialectOptions: {
+        decimalNumbers: true
+      },
       logging: process.env.NODE_ENV === 'development' ? console.log : false
     });
   }
