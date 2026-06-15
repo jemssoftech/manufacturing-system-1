@@ -140,7 +140,7 @@
             const backendPort = localStorage.getItem('API_PORT') || '8000';
             return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
                 ? `http://${window.location.hostname}:${backendPort}/api`
-                : 'http://system1-api.jemssoftech.com/api';
+                : `${window.location.origin}/api`;
         })();
         let salesOrders = [];
         let customers = [];
