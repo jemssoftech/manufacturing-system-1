@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:14-alpine
+    container_name: textile_erp_db
+    environment:
+      POSTGRES_DB: textile_erp
+      POSTGRES_USER: erp_user
+      POSTGRES_PASSWORD: erp_password_2024
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U erp_user -d textile_erp"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - erp_network
+
+  # Redis (for Celery - Phase 2)
+  redis:
+    image: redis:7-alpine
+    container_name: textile_erp_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - erp_network
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: textile_erp_backend
+    environment:
+      DATABASE_URL: postgresql://erp_user:erp_password_2024@db:5432/textile_erp
+      SECRET_KEY: ${SECRET_KEY:-your-super-secret-key-min-32-characters-long}
+      REDIS_URL: redis://redis:6379/0
+      DEBUG: "True"
+    volumes:
+      - ./backend:/app
+      - ml_models:/app/ml_modules/models
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - erp_network
+
+  # Nginx for Frontend
+  nginx:
+    image: nginx:alpine
+    container_name: textile_erp_nginx
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - erp_network
+
+  # Celery Worker (Phase 2)
+  # celery_worker:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   container_name: textile_erp_celery
+  #   command: celery -A app.tasks.celery_app worker --loglevel=info
+  #   environment:
+  #     DATABASE_URL: postgresql://erp_user:erp_password_2024@db:5432/textile_erp
+  #     REDIS_URL: redis://redis:6379/0
+  #   volumes:
+  #     - ./backend:/app
+  #   depends_on:
+  #     - db
+  #     - redis
+  #   networks:
+  #     - erp_network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  ml_models:
+    driver: local
+
+networks:
+  erp_network:
+    driver: bridge

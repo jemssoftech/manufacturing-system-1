@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Production Log - Textile ERP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <nav class="bg-indigo-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-industry text-2xl"></i>
+                <h1 class="text-2xl font-bold">Textile ERP</h1>
+            </div>
+            <div class="flex items-center space-x-6">
+                <a href="../dashboard.html" class="hover:text-indigo-200">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <a href="../production/work-orders.html" class="hover:text-indigo-200">
+                    <i class="fas fa-arrow-left"></i> Back to Work Orders
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- Page Header -->
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-gray-800">Log Production</h2>
+                <p class="text-gray-600">Record production quantities for work orders</p>
+            </div>
+
+            <!-- Work Order Selection -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h3 class="text-xl font-semibold mb-4">Select Work Order</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Work Order *</label>
+                        <select id="workOrderSelect" required onchange="loadWorkOrderDetails()"
+                                class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                            <option value="">Select Work Order...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <input type="text" id="woStatus" readonly 
+                               class="w-full px-3 py-2 border rounded-lg bg-gray-50">
+                    </div>
+                </div>
+
+                <!-- Work Order Details -->
+                <div id="woDetails" class="hidden mt-4 p-4 bg-gray-50 rounded-lg">
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-600">Product</p>
+                            <p id="woProduct" class="font-medium"></p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Target Quantity</p>
+                            <p id="woQuantity" class="font-medium"></p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Already Produced</p>
+                            <p id="woProduced" class="font-medium text-indigo-600"></p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Remaining</p>
+                            <p id="woRemaining" class="font-medium text-orange-600"></p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Start Date</p>
+                            <p id="woStartDate" class="font-medium"></p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Expected End</p>
+                            <p id="woEndDate" class="font-medium"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Production Log Form -->
+            <form id="productionLogForm" onsubmit="submitProductionLog(event)" class="space-y-6">
+                <!-- Production Details -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-4">Production Details</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Production Date *</label>
+                            <input type="date" name="production_date" required 
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Shift *</label>
+                            <select name="shift" required 
+                                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                                <option value="">Select Shift...</option>
+                                <option value="morning">Morning (6 AM - 2 PM)</option>
+                                <option value="afternoon">Afternoon (2 PM - 10 PM)</option>
+                                <option value="night">Night (10 PM - 6 AM)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Quantity Produced *</label>
+                            <input type="number" id="quantityProduced" name="quantity_produced" step="0.01" required 
+                                   onchange="calculateEfficiency()"
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Good Quantity *</label>
+                            <input type="number" id="goodQuantity" name="good_quantity" step="0.01" required 
+                                   onchange="calculateEfficiency()"
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                            <p class="text-xs text-gray-500 mt-1">Quantity meeting quality standards</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Rejected Quantity</label>
+                            <input type="number" id="rejectedQuantity" name="rejected_quantity" step="0.01" value="0" 
+                                   onchange="calculateEfficiency()"
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Quality Rate (%)</label>
+                            <input type="text" id="qualityRate" readonly 
+                                   class="w-full px-3 py-2 border rounded-lg bg-gray-50">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Operator & Machine Details -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-4">Operator & Machine Details</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Operator Name *</label>
+                            <input type="text" name="operator_name" required 
+                                   placeholder="e.g., John Smith"
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Operator ID</label>
+                            <input type="text" name="operator_id" 
+                                   placeholder="e.g., OP123"
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Machine Used</label>
+                            <select id="machineSelect" name="machine_id" 
+                                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                                <option value="">Select Machine...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Machine Hours</label>
+                            <input type="number" name="machine_hours" step="0.1" 
+                                   placeholder="e.g., 8.0"
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Labor Hours</label>
+                            <input type="number" name="labor_hours" step="0.1" 
+                                   placeholder="e.g., 8.0"
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Downtime (minutes)</label>
+                            <input type="number" name="downtime_minutes" value="0" 
+                                   placeholder="e.g., 30"
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Information -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-4">Additional Information</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Rejection Reason</label>
+                            <textarea name="rejection_reason" rows="2" 
+                                      placeholder="Describe any quality issues or rejection reasons"
+                                      class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Notes / Comments</label>
+                            <textarea name="notes" rows="3" 
+                                      placeholder="Any additional comments about this production run"
+                                      class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex justify-end space-x-4">
+                    <a href="../production/work-orders.html" 
+                       class="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                        Cancel
+                    </a>
+                    <button type="submit" 
+                            class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                        <i class="fas fa-save"></i> Log Production
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        let workOrders = [];
+        let machines = [];
+        let currentWO = null;
+
+        function getToken() {
+            return localStorage.getItem('token') || '';
+        }
+
+        function checkAuth() {
+            const token = getToken();
+            if (!token) {
+                window.location.href = '../login.html';
+                return false;
+            }
+            return true;
+        }
+
+        async function loadWorkOrders() {
+            try {
+                const response = await fetch(`${API_BASE}/production/work-orders?status=in_progress&limit=1000`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                workOrders = await response.json();
+                
+                const select = document.getElementById('workOrderSelect');
+                workOrders.forEach(wo => {
+                    const option = document.createElement('option');
+                    option.value = wo.wo_id;
+                    option.textContent = `${wo.wo_number} - ${wo.product_name || 'Product'}`;
+                    select.appendChild(option);
+                });
+
+                // Check for wo_id in URL
+                const params = new URLSearchParams(window.location.search);
+                const woId = params.get('wo_id');
+                if (woId) {
+                    select.value = woId;
+                    loadWorkOrderDetails();
+                }
+            } catch (error) {
+                console.error('Error loading work orders:', error);
+            }
+        }
+
+        async function loadMachines() {
+            try {
+                const response = await fetch(`${API_BASE}/production/machines?limit=1000`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                machines = await response.json();
+                
+                const select = document.getElementById('machineSelect');
+                machines.forEach(machine => {
+                    const option = document.createElement('option');
+                    option.value = machine.machine_id;
+                    option.textContent = `${machine.machine_code} - ${machine.name}`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading machines:', error);
+            }
+        }
+
+        function loadWorkOrderDetails() {
+            const woId = document.getElementById('workOrderSelect').value;
+            if (!woId) {
+                document.getElementById('woDetails').classList.add('hidden');
+                return;
+            }
+
+            currentWO = workOrders.find(wo => wo.wo_id == woId);
+            if (!currentWO) return;
+
+            document.getElementById('woStatus').value = currentWO.status.replace('_', ' ').toUpperCase();
+            document.getElementById('woProduct').textContent = currentWO.product_name || 'N/A';
+            document.getElementById('woQuantity').textContent = currentWO.quantity.toFixed(2);
+            document.getElementById('woProduced').textContent = (currentWO.quantity_produced || 0).toFixed(2);
+            
+            const remaining = currentWO.quantity - (currentWO.quantity_produced || 0);
+            document.getElementById('woRemaining').textContent = remaining.toFixed(2);
+            
+            document.getElementById('woStartDate').textContent = currentWO.actual_start_date ? 
+                new Date(currentWO.actual_start_date).toLocaleDateString() : '-';
+            document.getElementById('woEndDate').textContent = currentWO.planned_end_date ? 
+                new Date(currentWO.planned_end_date).toLocaleDateString() : '-';
+
+            document.getElementById('woDetails').classList.remove('hidden');
+        }
+
+        function calculateEfficiency() {
+            const produced = parseFloat(document.getElementById('quantityProduced').value) || 0;
+            const good = parseFloat(document.getElementById('goodQuantity').value) || 0;
+            const rejected = parseFloat(document.getElementById('rejectedQuantity').value) || 0;
+
+            // Auto-calculate good quantity if not manually set
+            if (produced > 0 && good === 0 && rejected > 0) {
+                document.getElementById('goodQuantity').value = (produced - rejected).toFixed(2);
+            }
+
+            // Calculate quality rate
+            if (produced > 0) {
+                const qualityRate = (good / produced) * 100;
+                document.getElementById('qualityRate').value = qualityRate.toFixed(2) + '%';
+            } else {
+                document.getElementById('qualityRate').value = '';
+            }
+        }
+
+        async function submitProductionLog(event) {
+            event.preventDefault();
+            
+            if (!checkAuth()) return;
+
+            const woId = document.getElementById('workOrderSelect').value;
+            if (!woId) {
+                alert('Please select a work order');
+                return;
+            }
+
+            const formData = new FormData(event.target);
+            
+            const data = {
+                work_order_id: parseInt(woId),
+                production_date: formData.get('production_date'),
+                shift: formData.get('shift'),
+                quantity_produced: parseFloat(formData.get('quantity_produced')),
+                good_quantity: parseFloat(formData.get('good_quantity')),
+                rejected_quantity: parseFloat(formData.get('rejected_quantity')) || 0,
+                operator_name: formData.get('operator_name'),
+                operator_id: formData.get('operator_id') || null,
+                machine_id: formData.get('machine_id') ? parseInt(formData.get('machine_id')) : null,
+                machine_hours: formData.get('machine_hours') ? parseFloat(formData.get('machine_hours')) : null,
+                labor_hours: formData.get('labor_hours') ? parseFloat(formData.get('labor_hours')) : null,
+                downtime_minutes: parseInt(formData.get('downtime_minutes')) || 0,
+                rejection_reason: formData.get('rejection_reason') || null,
+                notes: formData.get('notes') || null
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/production/work-orders/${woId}/log`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to log production');
+                }
+
+                alert('Production logged successfully!');
+                window.location.href = '../production/work-orders.html';
+            } catch (error) {
+                console.error('Error logging production:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!checkAuth()) return;
+
+            // Set today's date
+            document.querySelector('[name="production_date"]').valueAsDate = new Date();
+            
+            await loadWorkOrders();
+            await loadMachines();
+        });
+    </script>
+</body>
+</html>

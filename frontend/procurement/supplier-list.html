@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier Management - Textile ERP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <nav class="bg-indigo-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-industry text-2xl"></i>
+                <h1 class="text-2xl font-bold">Textile ERP</h1>
+            </div>
+            <div class="flex items-center space-x-6">
+                <a href="../dashboard.html" class="hover:text-indigo-200">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <a href="supplier-list.html" class="hover:text-indigo-200">
+                    <i class="fas fa-shopping-cart"></i> Procurement
+                </a>
+                <a href="../inventory/stock-dashboard.html" class="hover:text-indigo-200">
+                    <i class="fas fa-boxes"></i> Inventory
+                </a>
+                <a href="../production/work-orders.html" class="hover:text-indigo-200">
+                    <i class="fas fa-cogs"></i> Production
+                </a>
+                <a href="../quality/qc-form.html" class="hover:text-indigo-200">
+                    <i class="fas fa-check-circle"></i> Quality
+                </a>
+                <a href="../sales/customers.html" class="hover:text-indigo-200">
+                    <i class="fas fa-chart-line"></i> Sales
+                </a>
+                <a href="../reports/reports-procurement.html" class="hover:text-indigo-200">
+                    <i class="fas fa-file-alt"></i> Reports
+                </a>
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-user-circle text-2xl"></i>
+                    <span id="userName">User</span>
+                </div>
+                <button onclick="logout()" class="hover:bg-indigo-700 px-3 py-1 rounded">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Page Header -->
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-800">Supplier Management</h2>
+                <p class="text-gray-600">Manage suppliers and vendor relationships</p>
+            </div>
+            <button onclick="openAddSupplierModal()" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition">
+                <i class="fas fa-plus"></i> Add New Supplier
+            </button>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                    <input type="text" id="searchInput" placeholder="Supplier name or code..." 
+                           class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <select id="statusFilter" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="blacklisted">Blacklisted</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button onclick="applyFilters()" class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition w-full">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
+                </div>
+                <div class="flex items-end">
+                    <button onclick="resetFilters()" class="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400 transition w-full">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Suppliers Table -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">City</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="supplierTableBody" class="bg-white divide-y divide-gray-200">
+                    <tr>
+                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                            <i class="fas fa-spinner fa-spin text-2xl"></i>
+                            <p class="mt-2">Loading suppliers...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-4 flex justify-between items-center">
+            <div class="text-sm text-gray-600">
+                Showing <span id="recordCount">0</span> suppliers
+            </div>
+            <div class="flex space-x-2">
+                <button onclick="previousPage()" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Previous</button>
+                <button onclick="nextPage()" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Supplier Modal -->
+    <div id="addSupplierModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-lg bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold">Add New Supplier</h3>
+                <button onclick="closeAddSupplierModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <form id="addSupplierForm" onsubmit="submitSupplier(event)">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Supplier Code *</label>
+                        <input type="text" name="supplier_code" required 
+                               class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Supplier Name *</label>
+                        <input type="text" name="name" required 
+                               class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Contact Person</label>
+                        <input type="text" name="contact_person" 
+                               class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <input type="email" name="email" 
+                               class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                        <input type="tel" name="phone" 
+                               class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
+                        <input type="text" name="city" 
+                               class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                        <textarea name="address" rows="3" 
+                                  class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Payment Terms</label>
+                        <input type="text" name="payment_terms" placeholder="e.g., Net 30" 
+                               class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button type="button" onclick="closeAddSupplierModal()" 
+                            class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                        <i class="fas fa-save"></i> Save Supplier
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        let currentPage = 0;
+        let pageSize = 20;
+
+        // Get token from localStorage
+        function getToken() {
+            return localStorage.getItem('token') || '';
+        }
+
+        // Load suppliers
+        async function loadSuppliers() {
+            try {
+                const search = document.getElementById('searchInput').value;
+                const status = document.getElementById('statusFilter').value;
+                
+                let url = `${API_BASE}/procurement/suppliers?skip=${currentPage * pageSize}&limit=${pageSize}`;
+                if (search) url += `&search=${encodeURIComponent(search)}`;
+                if (status) url += `&status=${status}`;
+
+                const response = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+
+                if (!response.ok) throw new Error('Failed to load suppliers');
+
+                const suppliers = await response.json();
+                displaySuppliers(suppliers);
+            } catch (error) {
+                console.error('Error loading suppliers:', error);
+                document.getElementById('supplierTableBody').innerHTML = `
+                    <tr><td colspan="7" class="px-6 py-4 text-center text-red-500">
+                        Error loading suppliers. Please try again.
+                    </td></tr>
+                `;
+            }
+        }
+
+        // Display suppliers in table
+        function displaySuppliers(suppliers) {
+            const tbody = document.getElementById('supplierTableBody');
+            
+            if (suppliers.length === 0) {
+                tbody.innerHTML = `
+                    <tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                        No suppliers found. Add your first supplier!
+                    </td></tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = suppliers.map(supplier => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        ${supplier.supplier_code}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${supplier.name}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${supplier.email || 'N/A'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${supplier.city || 'N/A'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${supplier.rating ? `⭐ ${supplier.rating.toFixed(1)}` : 'Not rated'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                     ${supplier.status === 'active' ? 'bg-green-100 text-green-800' : 
+                                       supplier.status === 'inactive' ? 'bg-gray-100 text-gray-800' : 
+                                       'bg-red-100 text-red-800'}">
+                            ${supplier.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="viewSupplier(${supplier.supplier_id})" 
+                                class="text-indigo-600 hover:text-indigo-900 mr-3">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button onclick="editSupplier(${supplier.supplier_id})" 
+                                class="text-blue-600 hover:text-blue-900 mr-3">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <a href="create-po.html?supplier_id=${supplier.supplier_id}" 
+                           class="text-green-600 hover:text-green-900">
+                            <i class="fas fa-file-invoice"></i>
+                        </a>
+                    </td>
+                </tr>
+            `).join('');
+
+            document.getElementById('recordCount').textContent = suppliers.length;
+        }
+
+        // Submit new supplier
+        async function submitSupplier(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch(`${API_BASE}/procurement/suppliers`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) throw new Error('Failed to create supplier');
+
+                alert('Supplier created successfully!');
+                closeAddSupplierModal();
+                loadSuppliers();
+            } catch (error) {
+                console.error('Error creating supplier:', error);
+                alert('Error creating supplier. Please try again.');
+            }
+        }
+
+        // Modal controls
+        function openAddSupplierModal() {
+            document.getElementById('addSupplierModal').classList.remove('hidden');
+        }
+
+        function closeAddSupplierModal() {
+            document.getElementById('addSupplierModal').classList.add('hidden');
+            document.getElementById('addSupplierForm').reset();
+        }
+
+        // Filter functions
+        function applyFilters() {
+            currentPage = 0;
+            loadSuppliers();
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('statusFilter').value = '';
+            currentPage = 0;
+            loadSuppliers();
+        }
+
+        // Pagination
+        function previousPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                loadSuppliers();
+            }
+        }
+
+        function nextPage() {
+            currentPage++;
+            loadSuppliers();
+        }
+
+        // Placeholder functions
+        function viewSupplier(id) {
+            alert(`View supplier ${id} - Full details page coming soon`);
+        }
+
+        function editSupplier(id) {
+            alert(`Edit supplier ${id} - Edit form coming soon`);
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '../login.html';
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSuppliers();
+        });
+    </script>
+</body>
+</html>

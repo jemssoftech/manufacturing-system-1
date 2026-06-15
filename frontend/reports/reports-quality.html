@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quality Reports - Textile ERP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <nav class="bg-indigo-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-industry text-2xl"></i>
+                <h1 class="text-2xl font-bold">Textile ERP</h1>
+            </div>
+            <div class="flex items-center space-x-6">
+                <a href="../dashboard.html" class="hover:text-indigo-200">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <span id="userName" class="text-sm"></span>
+                <button onclick="logout()" class="hover:text-indigo-200">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Page Header -->
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-800">Quality Control Reports</h2>
+            <p class="text-gray-600">Analyze quality inspections, defects, and compliance metrics</p>
+        </div>
+
+        <!-- Date Range Filter -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="grid grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">From Date</label>
+                    <input type="date" id="fromDate" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">To Date</label>
+                    <input type="date" id="toDate" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Inspection Type</label>
+                    <select id="typeFilter" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <option value="">All Types</option>
+                        <option value="incoming">Incoming</option>
+                        <option value="in_process">In-Process</option>
+                        <option value="final">Final</option>
+                        <option value="outgoing">Outgoing</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button onclick="loadReports()" class="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
+                        <i class="fas fa-sync"></i> Generate Report
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Total Inspections</p>
+                        <p id="totalInspections" class="text-2xl font-bold text-gray-800">0</p>
+                    </div>
+                    <i class="fas fa-clipboard-check text-3xl text-blue-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Pass Rate</p>
+                        <p id="passRate" class="text-2xl font-bold text-green-600">0%</p>
+                    </div>
+                    <i class="fas fa-check-circle text-3xl text-green-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Rejection Rate</p>
+                        <p id="rejectionRate" class="text-2xl font-bold text-red-600">0%</p>
+                    </div>
+                    <i class="fas fa-times-circle text-3xl text-red-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Defect Rate</p>
+                        <p id="defectRate" class="text-2xl font-bold text-orange-600">0%</p>
+                    </div>
+                    <i class="fas fa-exclamation-triangle text-3xl text-orange-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">First Pass Yield</p>
+                        <p id="firstPassYield" class="text-2xl font-bold text-purple-600">0%</p>
+                    </div>
+                    <i class="fas fa-trophy text-3xl text-purple-500"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 1 -->
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Inspection Results</h3>
+                <canvas id="inspectionResultsChart"></canvas>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Quality Trend</h3>
+                <canvas id="qualityTrendChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Charts Row 2 -->
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Top Defect Types</h3>
+                <canvas id="defectTypesChart"></canvas>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Inspection by Type</h3>
+                <canvas id="inspectionTypeChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Defects by Product Table -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-lg font-semibold mb-4">Defects by Product</h3>
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Inspections</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Passed</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Failed</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pass Rate</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Common Defects</th>
+                    </tr>
+                </thead>
+                <tbody id="defectsTable" class="bg-white divide-y divide-gray-200">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Recent Failed Inspections -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold mb-4">Recent Failed Inspections</h3>
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reference</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Inspector</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Defects</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="failedInspectionsTable" class="bg-white divide-y divide-gray-200">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        let charts = {};
+
+        function getToken() {
+            return localStorage.getItem('token') || '';
+        }
+
+        function checkAuth() {
+            const token = getToken();
+            if (!token) {
+                window.location.href = '../login.html';
+                return false;
+            }
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            document.getElementById('userName').textContent = user.username || '';
+            return true;
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '../login.html';
+        }
+
+        async function loadReports() {
+            if (!checkAuth()) return;
+
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+            const type = document.getElementById('typeFilter').value;
+
+            try {
+                let url = `${API_BASE}/reports/quality-report?`;
+                if (fromDate) url += `from_date=${fromDate}&`;
+                if (toDate) url += `to_date=${toDate}&`;
+                if (type) url += `inspection_type=${type}&`;
+
+                const response = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const data = await response.json();
+
+                updateKPIs(data);
+                renderCharts(data);
+                displayDefectsByProduct(data);
+                displayFailedInspections(data);
+            } catch (error) {
+                console.error('Error loading reports:', error);
+                alert('Failed to load reports. Using sample data.');
+                loadSampleData();
+            }
+        }
+
+        function updateKPIs(data) {
+            document.getElementById('totalInspections').textContent = data.total_inspections || 0;
+            document.getElementById('passRate').textContent = `${(data.pass_rate || 0).toFixed(1)}%`;
+            document.getElementById('rejectionRate').textContent = `${(data.rejection_rate || 0).toFixed(1)}%`;
+            document.getElementById('defectRate').textContent = `${(data.defect_rate || 0).toFixed(1)}%`;
+            document.getElementById('firstPassYield').textContent = `${(data.first_pass_yield || 0).toFixed(1)}%`;
+        }
+
+        function renderCharts(data) {
+            // Destroy existing charts
+            Object.values(charts).forEach(chart => chart.destroy());
+            charts = {};
+
+            // Inspection Results Chart
+            const resultsCtx = document.getElementById('inspectionResultsChart').getContext('2d');
+            charts.results = new Chart(resultsCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Passed', 'Failed', 'Rework'],
+                    datasets: [{
+                        data: data.inspection_results || [85, 10, 5],
+                        backgroundColor: ['#10B981', '#EF4444', '#F59E0B']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+
+            // Quality Trend Chart
+            const trendCtx = document.getElementById('qualityTrendChart').getContext('2d');
+            charts.trend = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: data.trend_labels || ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [{
+                        label: 'Pass Rate (%)',
+                        data: data.pass_rate_trend || [94, 96, 95, 97],
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: 90,
+                            max: 100
+                        }
+                    }
+                }
+            });
+
+            // Defect Types Chart
+            const defectsCtx = document.getElementById('defectTypesChart').getContext('2d');
+            charts.defects = new Chart(defectsCtx, {
+                type: 'bar',
+                data: {
+                    labels: data.defect_labels || ['Color Shade', 'Stitching', 'Holes', 'Measurements', 'Others'],
+                    datasets: [{
+                        label: 'Defect Count',
+                        data: data.defect_counts || [45, 38, 25, 22, 15],
+                        backgroundColor: '#EF4444'
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: true,
+                    indexAxis: 'y'
+                }
+            });
+
+            // Inspection Type Chart
+            const typeCtx = document.getElementById('inspectionTypeChart').getContext('2d');
+            charts.type = new Chart(typeCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Incoming', 'In-Process', 'Final', 'Outgoing'],
+                    datasets: [{
+                        data: data.inspection_by_type || [25, 35, 30, 10],
+                        backgroundColor: ['#3B82F6', '#F59E0B', '#10B981', '#8B5CF6']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+        }
+
+        function displayDefectsByProduct(data) {
+            const tbody = document.getElementById('defectsTable');
+            tbody.innerHTML = '';
+
+            const products = data.defects_by_product || [
+                { name: 'Cotton T-Shirt', inspections: 50, passed: 47, failed: 3, pass_rate: 94.0, defects: 'Color Shade, Stitching' },
+                { name: 'Denim Jeans', inspections: 35, passed: 34, failed: 1, pass_rate: 97.1, defects: 'Measurements' },
+                { name: 'Polo Shirt', inspections: 42, passed: 40, failed: 2, pass_rate: 95.2, defects: 'Stitching' },
+                { name: 'Dress Shirt', inspections: 28, passed: 26, failed: 2, pass_rate: 92.9, defects: 'Color Shade, Holes' }
+            ];
+
+            products.forEach(product => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${product.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${product.inspections}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600">${product.passed}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">${product.failed}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium ${product.pass_rate >= 95 ? 'text-green-600' : product.pass_rate >= 90 ? 'text-orange-600' : 'text-red-600'}">
+                        ${product.pass_rate.toFixed(1)}%
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-600">${product.defects}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function displayFailedInspections(data) {
+            const tbody = document.getElementById('failedInspectionsTable');
+            tbody.innerHTML = '';
+
+            const inspections = data.failed_inspections || [
+                { date: '2025-11-25', reference: 'QC-1234', type: 'Final', inspector: 'John Doe', defects: 'Color shade mismatch' },
+                { date: '2025-11-24', reference: 'QC-1228', type: 'In-Process', inspector: 'Jane Smith', defects: 'Stitching defects' },
+                { date: '2025-11-23', reference: 'QC-1215', type: 'Incoming', inspector: 'Mike Johnson', defects: 'Holes in fabric' }
+            ];
+
+            inspections.forEach(inspection => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${inspection.date}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${inspection.reference}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${inspection.type}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${inspection.inspector}</td>
+                    <td class="px-6 py-4 text-sm text-gray-900">${inspection.defects}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <button class="text-indigo-600 hover:text-indigo-800">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function loadSampleData() {
+            const sampleData = {
+                total_inspections: 155,
+                pass_rate: 94.8,
+                rejection_rate: 4.5,
+                defect_rate: 5.2,
+                first_pass_yield: 93.5
+            };
+            updateKPIs(sampleData);
+            renderCharts(sampleData);
+            displayDefectsByProduct(sampleData);
+            displayFailedInspections(sampleData);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (checkAuth()) {
+                // Set default date range (last 30 days)
+                const today = new Date();
+                const thirtyDaysAgo = new Date(today);
+                thirtyDaysAgo.setDate(today.getDate() - 30);
+                
+                document.getElementById('toDate').valueAsDate = today;
+                document.getElementById('fromDate').valueAsDate = thirtyDaysAgo;
+
+                loadReports();
+            }
+        });
+    </script>
+</body>
+</html>

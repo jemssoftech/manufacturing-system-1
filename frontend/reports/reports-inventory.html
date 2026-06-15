@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Reports - Textile ERP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <nav class="bg-indigo-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-industry text-2xl"></i>
+                <h1 class="text-2xl font-bold">Textile ERP</h1>
+            </div>
+            <div class="flex items-center space-x-6">
+                <a href="../dashboard.html" class="hover:text-indigo-200">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <span id="userName" class="text-sm"></span>
+                <button onclick="logout()" class="hover:text-indigo-200">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Page Header -->
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-800">Inventory Reports</h2>
+            <p class="text-gray-600">Analyze stock levels, movements, and inventory performance</p>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="grid grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                    <select id="categoryFilter" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <option value="">All Categories</option>
+                        <option value="raw_material">Raw Material</option>
+                        <option value="fabric">Fabric</option>
+                        <option value="finished_goods">Finished Goods</option>
+                        <option value="accessories">Accessories</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
+                    <select id="dateRange" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <option value="7">Last 7 Days</option>
+                        <option value="30" selected>Last 30 Days</option>
+                        <option value="90">Last 90 Days</option>
+                        <option value="365">Last Year</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button onclick="loadReports()" class="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
+                        <i class="fas fa-sync"></i> Generate Report
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Total Materials</p>
+                        <p id="totalMaterials" class="text-2xl font-bold text-gray-800">0</p>
+                    </div>
+                    <i class="fas fa-boxes text-3xl text-blue-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Total Stock Value</p>
+                        <p id="totalValue" class="text-2xl font-bold text-green-600">$0</p>
+                    </div>
+                    <i class="fas fa-dollar-sign text-3xl text-green-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Low Stock Items</p>
+                        <p id="lowStockCount" class="text-2xl font-bold text-red-600">0</p>
+                    </div>
+                    <i class="fas fa-exclamation-triangle text-3xl text-red-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Stock Turnover</p>
+                        <p id="turnoverRate" class="text-2xl font-bold text-purple-600">0x</p>
+                    </div>
+                    <i class="fas fa-sync-alt text-3xl text-purple-500"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 1 -->
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Stock by Category</h3>
+                <canvas id="stockCategoryChart"></canvas>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Stock Movement Trend</h3>
+                <canvas id="movementTrendChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Charts Row 2 -->
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Top 10 Materials by Value</h3>
+                <canvas id="topMaterialsChart"></canvas>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">ABC Analysis</h3>
+                <canvas id="abcAnalysisChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Low Stock Alert Table -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-lg font-semibold mb-4">Low Stock Alerts</h3>
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Material</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Current Stock</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reorder Level</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="lowStockTable" class="bg-white divide-y divide-gray-200">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        let charts = {};
+
+        function getToken() {
+            return localStorage.getItem('token') || '';
+        }
+
+        function checkAuth() {
+            const token = getToken();
+            if (!token) {
+                window.location.href = '../login.html';
+                return false;
+            }
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            document.getElementById('userName').textContent = user.username || '';
+            return true;
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '../login.html';
+        }
+
+        async function loadReports() {
+            if (!checkAuth()) return;
+
+            const category = document.getElementById('categoryFilter').value;
+            const dateRange = document.getElementById('dateRange').value;
+
+            try {
+                let url = `${API_BASE}/reports/inventory-report?days=${dateRange}`;
+                if (category) url += `&category=${category}`;
+
+                const response = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const data = await response.json();
+
+                updateKPIs(data);
+                renderCharts(data);
+                displayLowStockAlerts(data);
+            } catch (error) {
+                console.error('Error loading reports:', error);
+                alert('Failed to load reports. Using sample data.');
+                loadSampleData();
+            }
+        }
+
+        function updateKPIs(data) {
+            document.getElementById('totalMaterials').textContent = data.total_materials || 0;
+            document.getElementById('totalValue').textContent = `$${(data.total_stock_value || 0).toFixed(2)}`;
+            document.getElementById('lowStockCount').textContent = data.low_stock_count || 0;
+            document.getElementById('turnoverRate').textContent = `${(data.turnover_rate || 0).toFixed(1)}x`;
+        }
+
+        function renderCharts(data) {
+            // Destroy existing charts
+            Object.values(charts).forEach(chart => chart.destroy());
+            charts = {};
+
+            // Stock by Category Chart
+            const categoryCtx = document.getElementById('stockCategoryChart').getContext('2d');
+            charts.category = new Chart(categoryCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Raw Material', 'Fabric', 'Finished Goods', 'Accessories', 'Packaging'],
+                    datasets: [{
+                        data: data.stock_by_category || [45000, 32000, 28000, 15000, 8000],
+                        backgroundColor: ['#8B5CF6', '#10B981', '#6366F1', '#F59E0B', '#6B7280']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+
+            // Movement Trend Chart
+            const trendCtx = document.getElementById('movementTrendChart').getContext('2d');
+            charts.trend = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: data.trend_labels || ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [
+                        {
+                            label: 'Stock In',
+                            data: data.stock_in_trend || [5000, 6500, 4800, 7200],
+                            borderColor: '#10B981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Stock Out',
+                            data: data.stock_out_trend || [4200, 5800, 5200, 6100],
+                            borderColor: '#EF4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+
+            // Top Materials Chart
+            const materialsCtx = document.getElementById('topMaterialsChart').getContext('2d');
+            charts.materials = new Chart(materialsCtx, {
+                type: 'bar',
+                data: {
+                    labels: data.top_materials_names || ['Cotton Yarn', 'Polyester', 'Denim', 'Buttons', 'Zippers'],
+                    datasets: [{
+                        label: 'Stock Value ($)',
+                        data: data.top_materials_values || [25000, 18000, 15000, 8000, 6000],
+                        backgroundColor: '#6366F1'
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: true,
+                    indexAxis: 'y'
+                }
+            });
+
+            // ABC Analysis Chart
+            const abcCtx = document.getElementById('abcAnalysisChart').getContext('2d');
+            charts.abc = new Chart(abcCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['A Items (70%)', 'B Items (20%)', 'C Items (10%)'],
+                    datasets: [{
+                        label: 'Value Contribution',
+                        data: data.abc_analysis || [70, 20, 10],
+                        backgroundColor: ['#10B981', '#F59E0B', '#EF4444']
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function displayLowStockAlerts(data) {
+            const tbody = document.getElementById('lowStockTable');
+            tbody.innerHTML = '';
+
+            const lowStockItems = data.low_stock_items || [
+                { material_id: 1, name: 'Cotton Yarn 30s', current: 50, reorder: 100, status: 'critical' },
+                { material_id: 2, name: 'Polyester Fabric', current: 180, reorder: 200, status: 'warning' },
+                { material_id: 3, name: 'Buttons (White)', current: 450, reorder: 500, status: 'warning' }
+            ];
+
+            lowStockItems.forEach(item => {
+                const statusColor = item.status === 'critical' ? 'red' : 'orange';
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.current.toFixed(2)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${item.reorder.toFixed(2)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs rounded-full bg-${statusColor}-100 text-${statusColor}-800">
+                            ${item.status.toUpperCase()}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <button onclick="createPO(${item.material_id})" class="text-indigo-600 hover:text-indigo-800">
+                            <i class="fas fa-shopping-cart"></i> Create PO
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function createPO(materialId) {
+            window.location.href = `../procurement/create-po.html?material_id=${materialId}`;
+        }
+
+        function loadSampleData() {
+            const sampleData = {
+                total_materials: 156,
+                total_stock_value: 128000,
+                low_stock_count: 12,
+                turnover_rate: 4.2
+            };
+            updateKPIs(sampleData);
+            renderCharts(sampleData);
+            displayLowStockAlerts(sampleData);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (checkAuth()) {
+                loadReports();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Orders - Textile ERP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <nav class="bg-indigo-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-industry text-2xl"></i>
+                <h1 class="text-2xl font-bold">Textile ERP</h1>
+            </div>
+            <div class="flex items-center space-x-6">
+                <a href="../dashboard.html" class="hover:text-indigo-200">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <a href="../procurement/supplier-list.html" class="hover:text-indigo-200">
+                    <i class="fas fa-shopping-cart"></i> Procurement
+                </a>
+                <a href="../inventory/stock-dashboard.html" class="hover:text-indigo-200">
+                    <i class="fas fa-boxes"></i> Inventory
+                </a>
+                <a href="../production/work-orders.html" class="hover:text-indigo-200">
+                    <i class="fas fa-cogs"></i> Production
+                </a>
+                <a href="../quality/qc-form.html" class="hover:text-indigo-200">
+                    <i class="fas fa-check-circle"></i> Quality
+                </a>
+                <a href="../sales/customers.html" class="hover:text-indigo-200">
+                    <i class="fas fa-chart-line"></i> Sales
+                </a>
+                <a href="../reports/reports-procurement.html" class="hover:text-indigo-200">
+                    <i class="fas fa-file-alt"></i> Reports
+                </a>
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-user-circle text-2xl"></i>
+                    <span id="username">User</span>
+                </div>
+                <button onclick="logout()" class="hover:bg-indigo-700 px-3 py-1 rounded">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Page Header -->
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-800">Work Orders</h2>
+                <p class="text-gray-600">Manage production work orders</p>
+            </div>
+            <a href="create-work-order.html" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition">
+                <i class="fas fa-plus"></i> Create Work Order
+            </a>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+            <div class="bg-white rounded-lg shadow p-4">
+                <p class="text-gray-500 text-sm">Total</p>
+                <p id="stat-total" class="text-2xl font-bold text-gray-800">0</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-4">
+                <p class="text-gray-500 text-sm">In Progress</p>
+                <p id="stat-in-progress" class="text-2xl font-bold text-yellow-600">0</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-4">
+                <p class="text-gray-500 text-sm">Completed</p>
+                <p id="stat-completed" class="text-2xl font-bold text-green-600">0</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-4">
+                <p class="text-gray-500 text-sm">Planned</p>
+                <p id="stat-planned" class="text-2xl font-bold text-blue-600">0</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-4">
+                <p class="text-gray-500 text-sm">Cancelled</p>
+                <p id="stat-cancelled" class="text-2xl font-bold text-red-600">0</p>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                    <input type="text" id="searchInput" placeholder="WO number..." 
+                           class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <select id="statusFilter" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <option value="">All Status</option>
+                        <option value="draft">Draft</option>
+                        <option value="planned">Planned</option>
+                        <option value="released">Released</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="paused">Paused</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Product</label>
+                    <select id="productFilter" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <option value="">All Products</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button onclick="applyFilters()" class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition w-full">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                </div>
+                <div class="flex items-end">
+                    <button onclick="resetFilters()" class="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400 transition w-full">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Work Orders Table -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">WO Number</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Produced</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Progress</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Start Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="woTableBody" class="bg-white divide-y divide-gray-200">
+                    <tr>
+                        <td colspan="8" class="px-6 py-4 text-center text-gray-500">
+                            <i class="fas fa-spinner fa-spin text-2xl"></i>
+                            <p class="mt-2">Loading work orders...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Action Modal -->
+    <div id="actionModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-lg bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modalTitle" class="text-xl font-bold">Work Order Action</h3>
+                <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <div id="modalContent">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        let workOrders = [];
+        let products = [];
+
+        function getToken() {
+            return localStorage.getItem('token') || '';
+        }
+
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '../login.html';
+                return;
+            }
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.username) {
+                document.getElementById('username').textContent = user.username;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '../login.html';
+        }
+
+        async function loadProducts() {
+            try {
+                const response = await fetch(`${API_BASE}/production/work-orders?limit=1000`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const wos = await response.json();
+                
+                // Extract unique products
+                const productSet = new Set();
+                wos.forEach(wo => {
+                    if (wo.product) {
+                        productSet.add(JSON.stringify({
+                            id: wo.product_id,
+                            code: wo.product.product_code,
+                            name: wo.product.name
+                        }));
+                    }
+                });
+
+                products = Array.from(productSet).map(p => JSON.parse(p));
+                
+                const select = document.getElementById('productFilter');
+                products.forEach(product => {
+                    const option = document.createElement('option');
+                    option.value = product.id;
+                    option.textContent = `${product.code} - ${product.name}`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading products:', error);
+            }
+        }
+
+        async function loadWorkOrders() {
+            try {
+                const status = document.getElementById('statusFilter').value;
+                const productId = document.getElementById('productFilter').value;
+                
+                let url = `${API_BASE}/production/work-orders?limit=100`;
+                if (status) url += `&status=${status}`;
+                if (productId) url += `&product_id=${productId}`;
+
+                const response = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+
+                if (!response.ok) throw new Error('Failed to load work orders');
+
+                workOrders = await response.json();
+                displayWorkOrders(workOrders);
+                updateStatistics(workOrders);
+            } catch (error) {
+                console.error('Error loading work orders:', error);
+                document.getElementById('woTableBody').innerHTML = `
+                    <tr><td colspan="8" class="px-6 py-4 text-center text-red-500">
+                        Error loading work orders. Please try again.
+                    </td></tr>
+                `;
+            }
+        }
+
+        function displayWorkOrders(wos) {
+            const tbody = document.getElementById('woTableBody');
+            
+            if (wos.length === 0) {
+                tbody.innerHTML = `
+                    <tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">
+                        No work orders found.
+                    </td></tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = wos.map(wo => {
+                const progress = wo.quantity > 0 ? ((wo.produced_quantity || 0) / wo.quantity * 100).toFixed(1) : 0;
+                const statusColors = {
+                    draft: 'bg-gray-100 text-gray-800',
+                    planned: 'bg-blue-100 text-blue-800',
+                    released: 'bg-cyan-100 text-cyan-800',
+                    in_progress: 'bg-yellow-100 text-yellow-800',
+                    paused: 'bg-orange-100 text-orange-800',
+                    completed: 'bg-green-100 text-green-800',
+                    cancelled: 'bg-red-100 text-red-800'
+                };
+
+                return `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">
+                            <a href="create-work-order.html?id=${wo.wo_id}" class="hover:underline">
+                                ${wo.wo_number}
+                            </a>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-900">
+                            ${wo.product ? `${wo.product.product_code} - ${wo.product.name}` : 'N/A'}
+                        </td>
+                        <td class="px-6 py-4 text-sm font-semibold">${wo.quantity} ${wo.unit || 'pcs'}</td>
+                        <td class="px-6 py-4 text-sm font-semibold text-green-600">${wo.produced_quantity || 0}</td>
+                        <td class="px-6 py-4 text-sm">
+                            <div class="flex items-center">
+                                <div class="w-full bg-gray-200 rounded-full h-2 mr-2">
+                                    <div class="bg-indigo-600 h-2 rounded-full" style="width: ${progress}%"></div>
+                                </div>
+                                <span class="text-xs font-semibold">${progress}%</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusColors[wo.status] || 'bg-gray-100 text-gray-800'}">
+                                ${wo.status}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500">
+                            ${wo.planned_start_date || 'Not set'}
+                        </td>
+                        <td class="px-6 py-4 text-sm">
+                            ${getActionButtons(wo)}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function getActionButtons(wo) {
+            let buttons = '';
+            
+            if (wo.status === 'draft' || wo.status === 'planned' || wo.status === 'released') {
+                buttons += `<button onclick="startWorkOrder(${wo.wo_id})" class="text-green-600 hover:text-green-900 mr-2" title="Start">
+                    <i class="fas fa-play"></i>
+                </button>`;
+            }
+            
+            if (wo.status === 'in_progress') {
+                buttons += `<button onclick="pauseWorkOrder(${wo.wo_id})" class="text-orange-600 hover:text-orange-900 mr-2" title="Pause">
+                    <i class="fas fa-pause"></i>
+                </button>`;
+                buttons += `<button onclick="completeWorkOrder(${wo.wo_id})" class="text-blue-600 hover:text-blue-900 mr-2" title="Complete">
+                    <i class="fas fa-check"></i>
+                </button>`;
+                buttons += `<button onclick="logProduction(${wo.wo_id})" class="text-purple-600 hover:text-purple-900 mr-2" title="Log Production">
+                    <i class="fas fa-clipboard-list"></i>
+                </button>`;
+            }
+            
+            if (wo.status === 'paused') {
+                buttons += `<button onclick="resumeWorkOrder(${wo.wo_id})" class="text-green-600 hover:text-green-900 mr-2" title="Resume">
+                    <i class="fas fa-play"></i>
+                </button>`;
+            }
+            
+            buttons += `<a href="create-work-order.html?id=${wo.wo_id}" class="text-indigo-600 hover:text-indigo-900" title="View Details">
+                <i class="fas fa-eye"></i>
+            </a>`;
+            
+            return buttons;
+        }
+
+        function updateStatistics(wos) {
+            const stats = {
+                total: wos.length,
+                in_progress: wos.filter(w => w.status === 'in_progress').length,
+                completed: wos.filter(w => w.status === 'completed').length,
+                planned: wos.filter(w => w.status === 'planned' || w.status === 'released').length,
+                cancelled: wos.filter(w => w.status === 'cancelled').length
+            };
+
+            document.getElementById('stat-total').textContent = stats.total;
+            document.getElementById('stat-in-progress').textContent = stats.in_progress;
+            document.getElementById('stat-completed').textContent = stats.completed;
+            document.getElementById('stat-planned').textContent = stats.planned;
+            document.getElementById('stat-cancelled').textContent = stats.cancelled;
+        }
+
+        async function startWorkOrder(woId) {
+            if (!confirm('Start this work order?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/production/work-orders/${woId}/start`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to start work order');
+
+                alert('Work order started successfully!');
+                loadWorkOrders();
+            } catch (error) {
+                console.error('Error starting work order:', error);
+                alert('Error starting work order. Please try again.');
+            }
+        }
+
+        async function completeWorkOrder(woId) {
+            if (!confirm('Mark this work order as completed?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/production/work-orders/${woId}/complete`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to complete work order');
+
+                alert('Work order completed successfully!');
+                loadWorkOrders();
+            } catch (error) {
+                console.error('Error completing work order:', error);
+                alert('Error completing work order. Please try again.');
+            }
+        }
+
+        function pauseWorkOrder(woId) {
+            alert('Pause functionality - API endpoint needs to be implemented');
+        }
+
+        function resumeWorkOrder(woId) {
+            alert('Resume functionality - Use start endpoint');
+            startWorkOrder(woId);
+        }
+
+        function logProduction(woId) {
+            window.location.href = `production-log.html?wo_id=${woId}`;
+        }
+
+        function applyFilters() {
+            loadWorkOrders();
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('productFilter').value = '';
+            loadWorkOrders();
+        }
+
+        function closeModal() {
+            document.getElementById('actionModal').classList.add('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            checkAuth();
+            await loadProducts();
+            await loadWorkOrders();
+        });
+    </script>
+</body>
+</html>

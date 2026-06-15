@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Textile ERP - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sidebar { min-height: 100vh; }
+        .sidebar a:hover { background-color: rgba(255, 255, 255, 0.1); }
+        .card { transition: transform 0.2s; }
+        .card:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <nav class="bg-indigo-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-industry text-2xl"></i>
+                <h1 class="text-2xl font-bold">Textile ERP</h1>
+            </div>
+            <div class="flex items-center space-x-6">
+                <div class="relative">
+                    <i class="fas fa-bell text-xl cursor-pointer"></i>
+                    <span class="absolute -top-1 -right-1 bg-red-500 text-xs rounded-full h-4 w-4 flex items-center justify-center">3</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-user-circle text-2xl"></i>
+                    <span id="userName">User</span>
+                </div>
+                <button onclick="logout()" class="hover:bg-indigo-700 px-3 py-1 rounded">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex">
+        <!-- Sidebar -->
+        <aside class="sidebar w-64 bg-gray-800 text-white">
+            <div class="p-4">
+                <h3 class="text-sm font-semibold text-gray-400 mb-4">MAIN MENU</h3>
+                <nav class="space-y-2">
+                    <a href="dashboard.html" class="flex items-center space-x-3 p-3 rounded hover:bg-gray-700 bg-gray-700">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="procurement/supplier-list.html" class="flex items-center space-x-3 p-3 rounded hover:bg-gray-700">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Procurement</span>
+                    </a>
+                    <a href="inventory/stock-dashboard.html" class="flex items-center space-x-3 p-3 rounded hover:bg-gray-700">
+                        <i class="fas fa-boxes"></i>
+                        <span>Inventory</span>
+                    </a>
+                    <a href="production/work-orders.html" class="flex items-center space-x-3 p-3 rounded hover:bg-gray-700">
+                        <i class="fas fa-cogs"></i>
+                        <span>Production</span>
+                    </a>
+                    <a href="quality/qc-form.html" class="flex items-center space-x-3 p-3 rounded hover:bg-gray-700">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Quality</span>
+                    </a>
+                    <a href="sales/customers.html" class="flex items-center space-x-3 p-3 rounded hover:bg-gray-700">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Sales</span>
+                    </a>
+                    <a href="reports/reports-procurement.html" class="flex items-center space-x-3 p-3 rounded hover:bg-gray-700">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Reports</span>
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8">
+            <!-- Quick Access Modules -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-blue-100 p-3 rounded-lg mr-4">
+                            <i class="fas fa-shopping-cart text-blue-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold">Procurement</h3>
+                    </div>
+                    <p class="text-gray-600 mb-4">Manage suppliers, purchase orders, and procurement processes</p>
+                    <a href="procurement/supplier-list.html" class="text-blue-600 hover:text-blue-800 font-medium">
+                        <i class="fas fa-arrow-right"></i> Access Procurement
+                    </a>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-green-100 p-3 rounded-lg mr-4">
+                            <i class="fas fa-boxes text-green-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold">Inventory</h3>
+                    </div>
+                    <p class="text-gray-600 mb-4">Track stock levels, movements, and warehouse management</p>
+                    <a href="inventory/stock-dashboard.html" class="text-green-600 hover:text-green-800 font-medium">
+                        <i class="fas fa-arrow-right"></i> Access Inventory
+                    </a>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-purple-100 p-3 rounded-lg mr-4">
+                            <i class="fas fa-cogs text-purple-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold">Production</h3>
+                    </div>
+                    <p class="text-gray-600 mb-4">Manage work orders, production schedules, and manufacturing</p>
+                    <a href="production/work-orders.html" class="text-purple-600 hover:text-purple-800 font-medium">
+                        <i class="fas fa-arrow-right"></i> Access Production
+                    </a>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-yellow-100 p-3 rounded-lg mr-4">
+                            <i class="fas fa-check-circle text-yellow-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold">Quality</h3>
+                    </div>
+                    <p class="text-gray-600 mb-4">Quality control, inspections, and compliance management</p>
+                    <a href="quality/qc-form.html" class="text-yellow-600 hover:text-yellow-800 font-medium">
+                        <i class="fas fa-arrow-right"></i> Access Quality
+                    </a>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-red-100 p-3 rounded-lg mr-4">
+                            <i class="fas fa-chart-line text-red-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold">Sales</h3>
+                    </div>
+                    <p class="text-gray-600 mb-4">Customer management, sales orders, and revenue tracking</p>
+                    <a href="sales/customers.html" class="text-red-600 hover:text-red-800 font-medium">
+                        <i class="fas fa-arrow-right"></i> Access Sales
+                    </a>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-indigo-100 p-3 rounded-lg mr-4">
+                            <i class="fas fa-file-alt text-indigo-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold">Reports</h3>
+                    </div>
+                    <p class="text-gray-600 mb-4">Generate and view comprehensive business reports</p>
+                    <a href="reports/reports-procurement.html" class="text-indigo-600 hover:text-indigo-800 font-medium">
+                        <i class="fas fa-arrow-right"></i> Access Reports
+                    </a>
+                </div>
+            </div>
+            
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="card bg-white rounded-lg shadow-md p-6">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm">Total Purchase Orders</p>
+                            <h3 class="text-3xl font-bold mt-2" id="kpi-pos">0</h3>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-lg">
+                            <i class="fas fa-shopping-cart text-blue-600 text-2xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-sm text-green-600 mt-4">
+                        <i class="fas fa-arrow-up"></i> 12% from last month
+                    </p>
+                </div>
+
+                <div class="card bg-white rounded-lg shadow-md p-6">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm">Stock Value</p>
+                            <h3 class="text-3xl font-bold mt-2" id="kpi-stock-value">$0</h3>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-lg">
+                            <i class="fas fa-boxes text-green-600 text-2xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-sm text-green-600 mt-4">
+                        <i class="fas fa-arrow-up"></i> 8% from last month
+                    </p>
+                </div>
+
+                <div class="card bg-white rounded-lg shadow-md p-6">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm">Active Work Orders</p>
+                            <h3 class="text-3xl font-bold mt-2" id="kpi-wos">0</h3>
+                        </div>
+                        <div class="bg-purple-100 p-3 rounded-lg">
+                            <i class="fas fa-cogs text-purple-600 text-2xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-sm text-red-600 mt-4">
+                        <i class="fas fa-arrow-down"></i> 3% from last month
+                    </p>
+                </div>
+
+                <div class="card bg-white rounded-lg shadow-md p-6">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm">Quality Pass Rate</p>
+                            <h3 class="text-3xl font-bold mt-2" id="kpi-pass-rate">0%</h3>
+                        </div>
+                        <div class="bg-yellow-100 p-3 rounded-lg">
+                            <i class="fas fa-check-circle text-yellow-600 text-2xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-sm text-green-600 mt-4">
+                        <i class="fas fa-arrow-up"></i> 5% from last month
+                    </p>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-semibold mb-4">Sales Trend (Last 30 Days)</h3>
+                    <canvas id="salesChart"></canvas>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-semibold mb-4">Production Overview</h3>
+                    <canvas id="productionChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Recent Activity</h3>
+                <div class="space-y-4" id="recent-activity">
+                    <div class="flex items-start space-x-4 border-b pb-4">
+                        <div class="bg-blue-100 p-2 rounded">
+                            <i class="fas fa-shopping-cart text-blue-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-medium">New Purchase Order Created</p>
+                            <p class="text-sm text-gray-600">PO-20240115-0001 for Supplier XYZ</p>
+                            <p class="text-xs text-gray-400">2 hours ago</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start space-x-4 border-b pb-4">
+                        <div class="bg-green-100 p-2 rounded">
+                            <i class="fas fa-box text-green-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-medium">Stock Received</p>
+                            <p class="text-sm text-gray-600">1000 kg of Cotton received</p>
+                            <p class="text-xs text-gray-400">4 hours ago</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start space-x-4">
+                        <div class="bg-purple-100 p-2 rounded">
+                            <i class="fas fa-cogs text-purple-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-medium">Work Order Completed</p>
+                            <p class="text-sm text-gray-600">WO-20240115-0005 - 500 units produced</p>
+                            <p class="text-xs text-gray-400">6 hours ago</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // API Base URL
+        const API_BASE = 'http://localhost:8000/api';
+
+        // Check authentication
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Display username
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const usernameSpan = document.querySelector('.fa-user-circle + span');
+            if (user.username && usernameSpan) {
+                usernameSpan.textContent = user.username;
+            }
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+
+        // Load Dashboard KPIs
+        async function loadKPIs() {
+            try {
+                const response = await fetch(`${API_BASE}/reports/dashboard`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                const data = await response.json();
+                
+                document.getElementById('kpi-pos').textContent = data.procurement.total_purchase_orders;
+                document.getElementById('kpi-stock-value').textContent = 
+                    '$' + data.inventory.total_stock_value.toLocaleString();
+                document.getElementById('kpi-wos').textContent = data.production.active_work_orders;
+                document.getElementById('kpi-pass-rate').textContent = 
+                    data.quality.pass_rate.toFixed(1) + '%';
+            } catch (error) {
+                console.error('Error loading KPIs:', error);
+            }
+        }
+
+        // Initialize Charts
+        function initCharts() {
+            // Sales Trend Chart
+            const salesCtx = document.getElementById('salesChart').getContext('2d');
+            new Chart(salesCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [{
+                        label: 'Sales ($)',
+                        data: [12000, 19000, 15000, 25000],
+                        borderColor: 'rgb(79, 70, 229)',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true
+                }
+            });
+
+            // Production Chart
+            const productionCtx = document.getElementById('productionChart').getContext('2d');
+            new Chart(productionCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Completed', 'In Progress', 'Planned', 'Cancelled'],
+                    datasets: [{
+                        label: 'Work Orders',
+                        data: [45, 28, 15, 5],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(251, 191, 36, 0.8)',
+                            'rgba(99, 102, 241, 0.8)',
+                            'rgba(239, 68, 68, 0.8)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true
+                }
+            });
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            loadKPIs();
+            initCharts();
+        });
+    </script>
+</body>
+</html>

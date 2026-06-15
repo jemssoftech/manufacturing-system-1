@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Production Reports - Textile ERP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <nav class="bg-indigo-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-industry text-2xl"></i>
+                <h1 class="text-2xl font-bold">Textile ERP</h1>
+            </div>
+            <div class="flex items-center space-x-6">
+                <a href="../dashboard.html" class="hover:text-indigo-200">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <span id="userName" class="text-sm"></span>
+                <button onclick="logout()" class="hover:text-indigo-200">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Page Header -->
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-800">Production Reports</h2>
+            <p class="text-gray-600">Analyze production efficiency, work orders, and output performance</p>
+        </div>
+
+        <!-- Date Range Filter -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="grid grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">From Date</label>
+                    <input type="date" id="fromDate" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">To Date</label>
+                    <input type="date" id="toDate" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Shift</label>
+                    <select id="shiftFilter" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <option value="">All Shifts</option>
+                        <option value="morning">Morning</option>
+                        <option value="afternoon">Afternoon</option>
+                        <option value="night">Night</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button onclick="loadReports()" class="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
+                        <i class="fas fa-sync"></i> Generate Report
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Total WOs</p>
+                        <p id="totalWOs" class="text-2xl font-bold text-gray-800">0</p>
+                    </div>
+                    <i class="fas fa-file-alt text-3xl text-blue-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Completed</p>
+                        <p id="completedWOs" class="text-2xl font-bold text-green-600">0</p>
+                    </div>
+                    <i class="fas fa-check-circle text-3xl text-green-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Production Qty</p>
+                        <p id="totalProduction" class="text-2xl font-bold text-indigo-600">0</p>
+                    </div>
+                    <i class="fas fa-boxes text-3xl text-indigo-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Quality Rate</p>
+                        <p id="qualityRate" class="text-2xl font-bold text-purple-600">0%</p>
+                    </div>
+                    <i class="fas fa-star text-3xl text-purple-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Efficiency</p>
+                        <p id="efficiency" class="text-2xl font-bold text-orange-600">0%</p>
+                    </div>
+                    <i class="fas fa-tachometer-alt text-3xl text-orange-500"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 1 -->
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Work Order Status</h3>
+                <canvas id="woStatusChart"></canvas>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Production Trend</h3>
+                <canvas id="productionTrendChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Charts Row 2 -->
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Production by Shift</h3>
+                <canvas id="shiftProductionChart"></canvas>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Quality vs Rejection Rate</h3>
+                <canvas id="qualityChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Machine Efficiency Table -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-lg font-semibold mb-4">Machine Performance</h3>
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Machine</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hours Used</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Production Qty</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Efficiency</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Downtime</th>
+                    </tr>
+                </thead>
+                <tbody id="machineTable" class="bg-white divide-y divide-gray-200">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Top Products Table -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold mb-4">Top Products by Production Volume</h3>
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Work Orders</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Quantity</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Good Quantity</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quality Rate</th>
+                    </tr>
+                </thead>
+                <tbody id="topProductsTable" class="bg-white divide-y divide-gray-200">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        let charts = {};
+
+        function getToken() {
+            return localStorage.getItem('token') || '';
+        }
+
+        function checkAuth() {
+            const token = getToken();
+            if (!token) {
+                window.location.href = '../login.html';
+                return false;
+            }
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            document.getElementById('userName').textContent = user.username || '';
+            return true;
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '../login.html';
+        }
+
+        async function loadReports() {
+            if (!checkAuth()) return;
+
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+            const shift = document.getElementById('shiftFilter').value;
+
+            try {
+                let url = `${API_BASE}/reports/production-report?`;
+                if (fromDate) url += `from_date=${fromDate}&`;
+                if (toDate) url += `to_date=${toDate}&`;
+                if (shift) url += `shift=${shift}&`;
+
+                const response = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const data = await response.json();
+
+                updateKPIs(data);
+                renderCharts(data);
+                displayMachinePerformance(data);
+                displayTopProducts(data);
+            } catch (error) {
+                console.error('Error loading reports:', error);
+                alert('Failed to load reports. Using sample data.');
+                loadSampleData();
+            }
+        }
+
+        function updateKPIs(data) {
+            document.getElementById('totalWOs').textContent = data.total_wos || 0;
+            document.getElementById('completedWOs').textContent = data.completed_wos || 0;
+            document.getElementById('totalProduction').textContent = (data.total_production || 0).toFixed(0);
+            document.getElementById('qualityRate').textContent = `${(data.quality_rate || 0).toFixed(1)}%`;
+            document.getElementById('efficiency').textContent = `${(data.efficiency || 0).toFixed(1)}%`;
+        }
+
+        function renderCharts(data) {
+            // Destroy existing charts
+            Object.values(charts).forEach(chart => chart.destroy());
+            charts = {};
+
+            // WO Status Chart
+            const statusCtx = document.getElementById('woStatusChart').getContext('2d');
+            charts.woStatus = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Completed', 'In Progress', 'Planned', 'Paused', 'Cancelled'],
+                    datasets: [{
+                        data: data.wo_by_status || [45, 25, 15, 8, 7],
+                        backgroundColor: ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#6B7280']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+
+            // Production Trend Chart
+            const trendCtx = document.getElementById('productionTrendChart').getContext('2d');
+            charts.trend = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: data.trend_labels || ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [{
+                        label: 'Production Quantity',
+                        data: data.trend_values || [2500, 3200, 2800, 3500],
+                        borderColor: '#6366F1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+
+            // Shift Production Chart
+            const shiftCtx = document.getElementById('shiftProductionChart').getContext('2d');
+            charts.shift = new Chart(shiftCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Morning', 'Afternoon', 'Night'],
+                    datasets: [{
+                        label: 'Production Quantity',
+                        data: data.shift_production || [4500, 4200, 3800],
+                        backgroundColor: ['#F59E0B', '#10B981', '#6366F1']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+
+            // Quality Chart
+            const qualityCtx = document.getElementById('qualityChart').getContext('2d');
+            charts.quality = new Chart(qualityCtx, {
+                type: 'bar',
+                data: {
+                    labels: data.quality_labels || ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [
+                        {
+                            label: 'Good Quantity (%)',
+                            data: data.good_rate || [95, 96, 94, 97],
+                            backgroundColor: '#10B981'
+                        },
+                        {
+                            label: 'Rejection Rate (%)',
+                            data: data.rejection_rate || [5, 4, 6, 3],
+                            backgroundColor: '#EF4444'
+                        }
+                    ]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        function displayMachinePerformance(data) {
+            const tbody = document.getElementById('machineTable');
+            tbody.innerHTML = '';
+
+            const machines = data.machine_performance || [
+                { name: 'Loom-01', hours: 180, quantity: 2500, efficiency: 92, downtime: 15 },
+                { name: 'Loom-02', hours: 175, quantity: 2400, efficiency: 89, downtime: 20 },
+                { name: 'Dyeing-01', hours: 160, quantity: 1800, efficiency: 85, downtime: 25 },
+                { name: 'Cutting-01', hours: 165, quantity: 3200, efficiency: 94, downtime: 10 }
+            ];
+
+            machines.forEach(machine => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${machine.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${machine.hours.toFixed(1)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${machine.quantity}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <span class="font-medium ${machine.efficiency >= 90 ? 'text-green-600' : machine.efficiency >= 80 ? 'text-orange-600' : 'text-red-600'}">
+                            ${machine.efficiency}%
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${machine.downtime} min</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function displayTopProducts(data) {
+            const tbody = document.getElementById('topProductsTable');
+            tbody.innerHTML = '';
+
+            const products = data.top_products || [
+                { name: 'Cotton T-Shirt', wos: 12, quantity: 5000, good: 4850, quality: 97.0 },
+                { name: 'Denim Jeans', wos: 8, quantity: 3200, good: 3100, quality: 96.9 },
+                { name: 'Polo Shirt', wos: 10, quantity: 4500, good: 4320, quality: 96.0 },
+                { name: 'Dress Shirt', wos: 6, quantity: 2800, good: 2660, quality: 95.0 },
+                { name: 'Casual Pants', wos: 7, quantity: 3100, good: 2945, quality: 95.0 }
+            ];
+
+            products.forEach(product => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${product.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${product.wos}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${product.quantity}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${product.good}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">${product.quality.toFixed(1)}%</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function loadSampleData() {
+            const sampleData = {
+                total_wos: 43,
+                completed_wos: 28,
+                total_production: 12500,
+                quality_rate: 95.8,
+                efficiency: 89.5
+            };
+            updateKPIs(sampleData);
+            renderCharts(sampleData);
+            displayMachinePerformance(sampleData);
+            displayTopProducts(sampleData);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (checkAuth()) {
+                // Set default date range (last 30 days)
+                const today = new Date();
+                const thirtyDaysAgo = new Date(today);
+                thirtyDaysAgo.setDate(today.getDate() - 30);
+                
+                document.getElementById('toDate').valueAsDate = today;
+                document.getElementById('fromDate').valueAsDate = thirtyDaysAgo;
+
+                loadReports();
+            }
+        });
+    </script>
+</body>
+</html>

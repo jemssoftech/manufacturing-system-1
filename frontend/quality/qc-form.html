@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quality Inspection - Textile ERP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <nav class="bg-indigo-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-industry text-2xl"></i>
+                <h1 class="text-2xl font-bold">Textile ERP</h1>
+            </div>
+            <div class="flex items-center space-x-6">
+                <a href="../dashboard.html" class="hover:text-indigo-200">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <a href="../procurement/supplier-list.html" class="hover:text-indigo-200">
+                    <i class="fas fa-shopping-cart"></i> Procurement
+                </a>
+                <a href="../inventory/stock-dashboard.html" class="hover:text-indigo-200">
+                    <i class="fas fa-boxes"></i> Inventory
+                </a>
+                <a href="../production/work-orders.html" class="hover:text-indigo-200">
+                    <i class="fas fa-cogs"></i> Production
+                </a>
+                <a href="../quality/qc-form.html" class="hover:text-indigo-200">
+                    <i class="fas fa-check-circle"></i> Quality
+                </a>
+                <a href="../sales/customers.html" class="hover:text-indigo-200">
+                    <i class="fas fa-chart-line"></i> Sales
+                </a>
+                <a href="../reports/reports-procurement.html" class="hover:text-indigo-200">
+                    <i class="fas fa-file-alt"></i> Reports
+                </a>
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-user-circle text-2xl"></i>
+                    <span id="userName">User</span>
+                </div>
+                <button onclick="logout()" class="hover:bg-indigo-700 px-3 py-1 rounded">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-5xl mx-auto">
+            <!-- Page Header -->
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-gray-800">Quality Control Inspection</h2>
+                <p class="text-gray-600">Conduct quality inspections for production batches</p>
+            </div>
+
+            <form id="inspectionForm" onsubmit="submitInspection(event)" class="space-y-6">
+                <!-- Inspection Details -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-4">Inspection Information</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Inspection Type *</label>
+                            <select id="inspectionType" onchange="toggleReference()" required 
+                                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                                <option value="">Select Type...</option>
+                                <option value="production">Production Inspection</option>
+                                <option value="procurement">Procurement Inspection</option>
+                            </select>
+                        </div>
+                        <div id="woField" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Work Order</label>
+                            <select name="wo_id" id="woSelect" 
+                                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                                <option value="">Select Work Order...</option>
+                            </select>
+                        </div>
+                        <div id="poField" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Purchase Order</label>
+                            <select name="po_id" id="poSelect" 
+                                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                                <option value="">Select Purchase Order...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Batch Number *</label>
+                            <input type="text" name="batch_number" required 
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Inspection Date *</label>
+                            <input type="date" name="inspection_date" required 
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Inspector *</label>
+                            <select name="inspector_id" required 
+                                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                                <option value="">Select Inspector...</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quantity Information -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-4">Inspection Quantities</h3>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Quantity Inspected *</label>
+                            <input type="number" name="quantity_inspected" step="0.01" required 
+                                   onchange="calculateResults()"
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Quantity Accepted</label>
+                            <input type="number" id="quantityAccepted" readonly 
+                                   class="w-full px-3 py-2 border rounded-lg bg-gray-50">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Quantity Rejected</label>
+                            <input type="number" id="quantityRejected" readonly 
+                                   class="w-full px-3 py-2 border rounded-lg bg-gray-50">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Defects -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold">Defects Found</h3>
+                        <button type="button" onclick="addDefect()" 
+                                class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                            <i class="fas fa-plus"></i> Add Defect
+                        </button>
+                    </div>
+
+                    <div id="defectsContainer">
+                        <p class="text-gray-500 text-center py-4">No defects added. Click "Add Defect" if any defects are found.</p>
+                    </div>
+
+                    <!-- Defect Summary -->
+                    <div class="mt-6 pt-6 border-t">
+                        <div class="grid grid-cols-4 gap-4">
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <p class="text-sm text-gray-600">Total Defects</p>
+                                <p id="totalDefects" class="text-2xl font-bold text-blue-600">0</p>
+                            </div>
+                            <div class="bg-yellow-50 p-4 rounded-lg">
+                                <p class="text-sm text-gray-600">Minor Defects</p>
+                                <p id="minorDefects" class="text-2xl font-bold text-yellow-600">0</p>
+                            </div>
+                            <div class="bg-orange-50 p-4 rounded-lg">
+                                <p class="text-sm text-gray-600">Major Defects</p>
+                                <p id="majorDefects" class="text-2xl font-bold text-orange-600">0</p>
+                            </div>
+                            <div class="bg-red-50 p-4 rounded-lg">
+                                <p class="text-sm text-gray-600">Critical Defects</p>
+                                <p id="criticalDefects" class="text-2xl font-bold text-red-600">0</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 p-4 rounded-lg" id="resultPanel">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Defect Rate</p>
+                                    <p id="defectRate" class="text-3xl font-bold">0.0%</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-600">Inspection Result</p>
+                                    <p id="inspectionResult" class="text-3xl font-bold">PENDING</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Remarks -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-4">Additional Information</h3>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Remarks</label>
+                        <textarea name="remarks" rows="4" 
+                                  class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"></textarea>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex justify-end space-x-4">
+                    <a href="../dashboard.html" 
+                       class="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                        Cancel
+                    </a>
+                    <button type="submit" 
+                            class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                        <i class="fas fa-save"></i> Submit Inspection
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        let defectCounter = 0;
+        let defectTypes = [];
+
+        function getToken() {
+            return localStorage.getItem('token') || '';
+        }
+
+        // Toggle reference fields
+        function toggleReference() {
+            const type = document.getElementById('inspectionType').value;
+            document.getElementById('woField').classList.toggle('hidden', type !== 'production');
+            document.getElementById('poField').classList.toggle('hidden', type !== 'procurement');
+        }
+
+        // Load defect types
+        async function loadDefectTypes() {
+            try {
+                const response = await fetch(`${API_BASE}/quality/defects/types`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                defectTypes = await response.json();
+            } catch (error) {
+                console.error('Error loading defect types:', error);
+            }
+        }
+
+        // Load work orders
+        async function loadWorkOrders() {
+            try {
+                const response = await fetch(`${API_BASE}/production/work-orders?limit=100`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const wos = await response.json();
+                
+                const select = document.getElementById('woSelect');
+                wos.forEach(wo => {
+                    const option = document.createElement('option');
+                    option.value = wo.wo_id;
+                    option.textContent = `${wo.wo_number} - ${wo.product?.product_code || ''}`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading work orders:', error);
+            }
+        }
+
+        // Load purchase orders
+        async function loadPurchaseOrders() {
+            try {
+                const response = await fetch(`${API_BASE}/procurement/purchase-orders?limit=100`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const pos = await response.json();
+                
+                const select = document.getElementById('poSelect');
+                pos.forEach(po => {
+                    const option = document.createElement('option');
+                    option.value = po.po_id;
+                    option.textContent = `${po.po_number} - ${po.supplier?.name || ''}`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading purchase orders:', error);
+            }
+        }
+
+        // Load inspectors (users)
+        async function loadInspectors() {
+            try {
+                const response = await fetch(`${API_BASE}/auth/users`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const users = await response.json();
+                
+                const select = document.querySelector('[name="inspector_id"]');
+                users.forEach(user => {
+                    const option = document.createElement('option');
+                    option.value = user.user_id;
+                    option.textContent = `${user.username} (${user.email})`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading inspectors:', error);
+            }
+        }
+
+        // Add defect row
+        function addDefect() {
+            const container = document.getElementById('defectsContainer');
+            
+            // Clear placeholder message
+            if (defectCounter === 0) {
+                container.innerHTML = '';
+            }
+            
+            const defectId = defectCounter++;
+            
+            const defectDiv = document.createElement('div');
+            defectDiv.id = `defect-${defectId}`;
+            defectDiv.className = 'grid grid-cols-12 gap-3 mb-3 items-end pb-3 border-b';
+            defectDiv.innerHTML = `
+                <div class="col-span-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Defect Type</label>
+                    <select name="defects[${defectId}][defect_type_id]" required 
+                            class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <option value="">Select Defect...</option>
+                        ${defectTypes.map(d => `<option value="${d.type_id}" data-severity="${d.severity}">${d.code} - ${d.name}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                    <input type="number" name="defects[${defectId}][quantity]" step="0.01" required 
+                           onchange="calculateResults()"
+                           class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Severity</label>
+                    <select name="defects[${defectId}][severity]" required 
+                            class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <option value="minor">Minor</option>
+                        <option value="major">Major</option>
+                        <option value="critical">Critical</option>
+                    </select>
+                </div>
+                <div class="col-span-3">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <input type="text" name="defects[${defectId}][description]" 
+                           class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="col-span-1">
+                    <button type="button" onclick="removeDefect(${defectId})" 
+                            class="w-full px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            
+            container.appendChild(defectDiv);
+            calculateResults();
+        }
+
+        // Remove defect
+        function removeDefect(defectId) {
+            document.getElementById(`defect-${defectId}`).remove();
+            calculateResults();
+        }
+
+        // Calculate results
+        function calculateResults() {
+            const inspected = parseFloat(document.querySelector('[name="quantity_inspected"]')?.value) || 0;
+            
+            // Count defects by severity
+            let totalDefects = 0;
+            let minorCount = 0;
+            let majorCount = 0;
+            let criticalCount = 0;
+            
+            document.querySelectorAll('[name^="defects"]').forEach((input) => {
+                if (input.name.includes('[quantity]')) {
+                    const defectId = input.name.match(/\[(\d+)\]/)[1];
+                    const quantity = parseFloat(input.value) || 0;
+                    const severity = document.querySelector(`[name="defects[${defectId}][severity]"]`)?.value;
+                    
+                    totalDefects += quantity;
+                    if (severity === 'minor') minorCount += quantity;
+                    if (severity === 'major') majorCount += quantity;
+                    if (severity === 'critical') criticalCount += quantity;
+                }
+            });
+            
+            // Update defect counts
+            document.getElementById('totalDefects').textContent = totalDefects.toFixed(0);
+            document.getElementById('minorDefects').textContent = minorCount.toFixed(0);
+            document.getElementById('majorDefects').textContent = majorCount.toFixed(0);
+            document.getElementById('criticalDefects').textContent = criticalCount.toFixed(0);
+            
+            // Calculate defect rate
+            const defectRate = inspected > 0 ? (totalDefects / inspected) * 100 : 0;
+            document.getElementById('defectRate').textContent = `${defectRate.toFixed(2)}%`;
+            
+            // Determine result
+            let result = 'PASSED';
+            let resultColor = 'bg-green-50';
+            let textColor = 'text-green-600';
+            
+            if (criticalCount > 0) {
+                result = 'FAILED';
+                resultColor = 'bg-red-50';
+                textColor = 'text-red-600';
+            } else if (defectRate > 5) {
+                result = 'FAILED';
+                resultColor = 'bg-red-50';
+                textColor = 'text-red-600';
+            } else if (defectRate >= 2) {
+                result = 'CONDITIONAL';
+                resultColor = 'bg-yellow-50';
+                textColor = 'text-yellow-600';
+            }
+            
+            const resultPanel = document.getElementById('resultPanel');
+            resultPanel.className = `mt-4 p-4 rounded-lg ${resultColor}`;
+            
+            const resultText = document.getElementById('inspectionResult');
+            resultText.textContent = result;
+            resultText.className = `text-3xl font-bold ${textColor}`;
+            
+            // Calculate accepted/rejected quantities
+            const rejected = totalDefects;
+            const accepted = inspected - rejected;
+            
+            document.getElementById('quantityAccepted').value = Math.max(0, accepted).toFixed(2);
+            document.getElementById('quantityRejected').value = rejected.toFixed(2);
+        }
+
+        // Submit inspection
+        async function submitInspection(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            
+            // Build defects array
+            const defects = [];
+            document.querySelectorAll('[name^="defects"]').forEach((input) => {
+                if (input.name.includes('[defect_type_id]')) {
+                    const defectId = input.name.match(/\[(\d+)\]/)[1];
+                    const quantityInput = document.querySelector(`[name="defects[${defectId}][quantity]"]`);
+                    const severityInput = document.querySelector(`[name="defects[${defectId}][severity]"]`);
+                    const descInput = document.querySelector(`[name="defects[${defectId}][description]"]`);
+                    
+                    defects.push({
+                        defect_type_id: parseInt(input.value),
+                        quantity: parseFloat(quantityInput.value),
+                        severity: severityInput.value,
+                        description: descInput?.value || null
+                    });
+                }
+            });
+
+            const data = {
+                wo_id: formData.get('wo_id') ? parseInt(formData.get('wo_id')) : null,
+                po_id: formData.get('po_id') ? parseInt(formData.get('po_id')) : null,
+                batch_number: formData.get('batch_number'),
+                inspection_date: formData.get('inspection_date'),
+                inspector_id: parseInt(formData.get('inspector_id')),
+                quantity_inspected: parseFloat(formData.get('quantity_inspected')),
+                remarks: formData.get('remarks') || null,
+                defects: defects
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/quality/inspections`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) throw new Error('Failed to create inspection');
+
+                const result = await response.json();
+                alert(`Inspection ${result.inspection_number} created successfully!\nResult: ${result.result}`);
+                window.location.href = '../dashboard.html';
+            } catch (error) {
+                console.error('Error creating inspection:', error);
+                alert('Error creating inspection. Please try again.');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Set today's date
+            document.querySelector('[name="inspection_date"]').valueAsDate = new Date();
+            
+            await loadDefectTypes();
+            await loadWorkOrders();
+            await loadPurchaseOrders();
+            await loadInspectors();
+        });
+    </script>
+</body>
+</html>

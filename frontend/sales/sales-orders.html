@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Orders - Textile ERP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <nav class="bg-indigo-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-industry text-2xl"></i>
+                <h1 class="text-2xl font-bold">Textile ERP</h1>
+            </div>
+            <div class="flex items-center space-x-6">
+                <a href="../dashboard.html" class="hover:text-indigo-200">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-user-circle text-2xl"></i>
+                    <span id="username">User</span>
+                </div>
+                <button onclick="logout()" class="hover:bg-indigo-700 px-3 py-1 rounded">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Page Header -->
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-800">Sales Orders</h2>
+                <p class="text-gray-600">Manage customer orders</p>
+            </div>
+            <a href="create-sales-order.html" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition">
+                <i class="fas fa-plus"></i> Create Sales Order
+            </a>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+            <div class="bg-white rounded-lg shadow p-4">
+                <p class="text-gray-500 text-sm">Total Orders</p>
+                <p id="stat-total" class="text-2xl font-bold text-gray-800">0</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-4">
+                <p class="text-gray-500 text-sm">Confirmed</p>
+                <p id="stat-confirmed" class="text-2xl font-bold text-green-600">0</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-4">
+                <p class="text-gray-500 text-sm">In Production</p>
+                <p id="stat-production" class="text-2xl font-bold text-yellow-600">0</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-4">
+                <p class="text-gray-500 text-sm">Dispatched</p>
+                <p id="stat-dispatched" class="text-2xl font-bold text-blue-600">0</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-4">
+                <p class="text-gray-500 text-sm">Total Value</p>
+                <p id="stat-value" class="text-2xl font-bold text-green-600">$0</p>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                    <input type="text" id="searchInput" placeholder="SO number..." 
+                           class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <select id="statusFilter" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <option value="">All Status</option>
+                        <option value="draft">Draft</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="in_production">In Production</option>
+                        <option value="ready_to_dispatch">Ready to Dispatch</option>
+                        <option value="partially_dispatched">Partially Dispatched</option>
+                        <option value="dispatched">Dispatched</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Customer</label>
+                    <select id="customerFilter" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <option value="">All Customers</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button onclick="applyFilters()" class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition w-full">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                </div>
+                <div class="flex items-end">
+                    <button onclick="resetFilters()" class="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400 transition w-full">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sales Orders Table -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">SO Number</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Delivery Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Amount</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="soTableBody" class="bg-white divide-y divide-gray-200">
+                    <tr>
+                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                            <i class="fas fa-spinner fa-spin text-2xl"></i>
+                            <p class="mt-2">Loading sales orders...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        let salesOrders = [];
+        let customers = [];
+
+        function getToken() {
+            return localStorage.getItem('token') || '';
+        }
+
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '../login.html';
+                return;
+            }
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.username) {
+                document.getElementById('username').textContent = user.username;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '../login.html';
+        }
+
+        async function loadCustomers() {
+            try {
+                const response = await fetch(`${API_BASE}/sales/customers?limit=1000`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                customers = await response.json();
+                
+                const select = document.getElementById('customerFilter');
+                customers.forEach(customer => {
+                    const option = document.createElement('option');
+                    option.value = customer.customer_id;
+                    option.textContent = `${customer.customer_code} - ${customer.name}`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading customers:', error);
+            }
+        }
+
+        async function loadSalesOrders() {
+            try {
+                const status = document.getElementById('statusFilter').value;
+                const customerId = document.getElementById('customerFilter').value;
+                
+                let url = `${API_BASE}/sales/sales-orders?limit=100`;
+                if (status) url += `&status=${status}`;
+                if (customerId) url += `&customer_id=${customerId}`;
+
+                const response = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+
+                if (!response.ok) throw new Error('Failed to load sales orders');
+
+                salesOrders = await response.json();
+                displaySalesOrders(salesOrders);
+                updateStatistics(salesOrders);
+            } catch (error) {
+                console.error('Error loading sales orders:', error);
+                document.getElementById('soTableBody').innerHTML = `
+                    <tr><td colspan="7" class="px-6 py-4 text-center text-red-500">
+                        Error loading sales orders. Please try again.
+                    </td></tr>
+                `;
+            }
+        }
+
+        function displaySalesOrders(orders) {
+            const tbody = document.getElementById('soTableBody');
+            
+            if (orders.length === 0) {
+                tbody.innerHTML = `
+                    <tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                        No sales orders found.
+                    </td></tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = orders.map(order => {
+                const statusColors = {
+                    draft: 'bg-gray-100 text-gray-800',
+                    confirmed: 'bg-green-100 text-green-800',
+                    in_production: 'bg-yellow-100 text-yellow-800',
+                    ready_to_dispatch: 'bg-blue-100 text-blue-800',
+                    partially_dispatched: 'bg-cyan-100 text-cyan-800',
+                    dispatched: 'bg-indigo-100 text-indigo-800',
+                    delivered: 'bg-green-100 text-green-800',
+                    cancelled: 'bg-red-100 text-red-800'
+                };
+
+                return `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">
+                            <a href="sales-order-details.html?id=${order.so_id}" class="hover:underline">
+                                ${order.so_number}
+                            </a>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-900">
+                            ${order.customer ? `${order.customer.customer_code} - ${order.customer.name}` : 'N/A'}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500">${order.order_date}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500">${order.delivery_date || 'Not set'}</td>
+                        <td class="px-6 py-4 text-sm font-semibold text-green-600">
+                            $${(order.net_amount || order.total_amount || 0).toFixed(2)}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusColors[order.status] || 'bg-gray-100 text-gray-800'}">
+                                ${order.status.replace('_', ' ')}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm whitespace-nowrap">
+                            ${getActionButtons(order)}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function getActionButtons(order) {
+            let buttons = '';
+            
+            if (order.status === 'draft') {
+                buttons += `<button onclick="confirmOrder(${order.so_id})" class="text-green-600 hover:text-green-900 mr-2" title="Confirm">
+                    <i class="fas fa-check"></i>
+                </button>`;
+            }
+            
+            if (order.status === 'confirmed' || order.status === 'in_production' || order.status === 'ready_to_dispatch') {
+                buttons += `<button onclick="createDispatch(${order.so_id})" class="text-blue-600 hover:text-blue-900 mr-2" title="Create Dispatch">
+                    <i class="fas fa-truck"></i>
+                </button>`;
+            }
+            
+            buttons += `<a href="sales-order-details.html?id=${order.so_id}" class="text-indigo-600 hover:text-indigo-900" title="View Details">
+                <i class="fas fa-eye"></i>
+            </a>`;
+            
+            return buttons;
+        }
+
+        function updateStatistics(orders) {
+            const stats = {
+                total: orders.length,
+                confirmed: orders.filter(o => o.status === 'confirmed').length,
+                production: orders.filter(o => o.status === 'in_production').length,
+                dispatched: orders.filter(o => o.status === 'dispatched' || o.status === 'delivered').length,
+                value: orders.reduce((sum, o) => sum + (o.net_amount || o.total_amount || 0), 0)
+            };
+
+            document.getElementById('stat-total').textContent = stats.total;
+            document.getElementById('stat-confirmed').textContent = stats.confirmed;
+            document.getElementById('stat-production').textContent = stats.production;
+            document.getElementById('stat-dispatched').textContent = stats.dispatched;
+            document.getElementById('stat-value').textContent = `$${stats.value.toFixed(2)}`;
+        }
+
+        async function confirmOrder(soId) {
+            if (!confirm('Confirm this sales order?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/sales/sales-orders/${soId}/confirm`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to confirm order');
+
+                alert('Sales order confirmed successfully!');
+                loadSalesOrders();
+            } catch (error) {
+                console.error('Error confirming order:', error);
+                alert('Error confirming order. Please try again.');
+            }
+        }
+
+        function createDispatch(soId) {
+            window.location.href = `create-dispatch.html?so_id=${soId}`;
+        }
+
+        function applyFilters() {
+            loadSalesOrders();
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('customerFilter').value = '';
+            loadSalesOrders();
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            checkAuth();
+            await loadCustomers();
+            await loadSalesOrders();
+        });
+    </script>
+</body>
+</html>

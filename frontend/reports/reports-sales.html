@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Reports - Textile ERP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <nav class="bg-indigo-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-industry text-2xl"></i>
+                <h1 class="text-2xl font-bold">Textile ERP</h1>
+            </div>
+            <div class="flex items-center space-x-6">
+                <a href="../dashboard.html" class="hover:text-indigo-200">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <span id="userName" class="text-sm"></span>
+                <button onclick="logout()" class="hover:text-indigo-200">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Page Header -->
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-800">Sales Reports</h2>
+            <p class="text-gray-600">Analyze sales performance, customers, and revenue trends</p>
+        </div>
+
+        <!-- Date Range Filter -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="grid grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">From Date</label>
+                    <input type="date" id="fromDate" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">To Date</label>
+                    <input type="date" id="toDate" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Customer</label>
+                    <select id="customerFilter" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <option value="">All Customers</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button onclick="loadReports()" class="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
+                        <i class="fas fa-sync"></i> Generate Report
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Total Orders</p>
+                        <p id="totalOrders" class="text-2xl font-bold text-gray-800">0</p>
+                    </div>
+                    <i class="fas fa-shopping-cart text-3xl text-blue-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Total Revenue</p>
+                        <p id="totalRevenue" class="text-2xl font-bold text-green-600">$0</p>
+                    </div>
+                    <i class="fas fa-dollar-sign text-3xl text-green-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Avg Order Value</p>
+                        <p id="avgOrderValue" class="text-2xl font-bold text-indigo-600">$0</p>
+                    </div>
+                    <i class="fas fa-chart-line text-3xl text-indigo-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Dispatched</p>
+                        <p id="dispatchedOrders" class="text-2xl font-bold text-purple-600">0</p>
+                    </div>
+                    <i class="fas fa-truck text-3xl text-purple-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Fulfillment Rate</p>
+                        <p id="fulfillmentRate" class="text-2xl font-bold text-orange-600">0%</p>
+                    </div>
+                    <i class="fas fa-percentage text-3xl text-orange-500"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 1 -->
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Sales Order Status</h3>
+                <canvas id="orderStatusChart"></canvas>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Revenue Trend</h3>
+                <canvas id="revenueTrendChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Charts Row 2 -->
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Top 10 Customers by Revenue</h3>
+                <canvas id="topCustomersChart"></canvas>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Top Products by Volume</h3>
+                <canvas id="topProductsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Customer Performance Table -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-lg font-semibold mb-4">Customer Performance</h3>
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Orders</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Revenue</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Avg Order Value</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Order</th>
+                    </tr>
+                </thead>
+                <tbody id="customerTable" class="bg-white divide-y divide-gray-200">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Product Sales Table -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold mb-4">Product Sales Performance</h3>
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Units Sold</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Revenue</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Avg Unit Price</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Growth</th>
+                    </tr>
+                </thead>
+                <tbody id="productTable" class="bg-white divide-y divide-gray-200">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        let charts = {};
+
+        function getToken() {
+            return localStorage.getItem('token') || '';
+        }
+
+        function checkAuth() {
+            const token = getToken();
+            if (!token) {
+                window.location.href = '../login.html';
+                return false;
+            }
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            document.getElementById('userName').textContent = user.username || '';
+            return true;
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '../login.html';
+        }
+
+        async function loadCustomers() {
+            try {
+                const response = await fetch(`${API_BASE}/sales/customers?limit=1000`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const customers = await response.json();
+                
+                const select = document.getElementById('customerFilter');
+                customers.forEach(customer => {
+                    const option = document.createElement('option');
+                    option.value = customer.customer_id;
+                    option.textContent = customer.name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading customers:', error);
+            }
+        }
+
+        async function loadReports() {
+            if (!checkAuth()) return;
+
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+            const customerId = document.getElementById('customerFilter').value;
+
+            try {
+                let url = `${API_BASE}/reports/sales-report?`;
+                if (fromDate) url += `from_date=${fromDate}&`;
+                if (toDate) url += `to_date=${toDate}&`;
+                if (customerId) url += `customer_id=${customerId}&`;
+
+                const response = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const data = await response.json();
+
+                updateKPIs(data);
+                renderCharts(data);
+                displayCustomerPerformance(data);
+                displayProductSales(data);
+            } catch (error) {
+                console.error('Error loading reports:', error);
+                alert('Failed to load reports. Using sample data.');
+                loadSampleData();
+            }
+        }
+
+        function updateKPIs(data) {
+            document.getElementById('totalOrders').textContent = data.total_orders || 0;
+            document.getElementById('totalRevenue').textContent = `$${(data.total_revenue || 0).toFixed(2)}`;
+            document.getElementById('avgOrderValue').textContent = `$${(data.avg_order_value || 0).toFixed(2)}`;
+            document.getElementById('dispatchedOrders').textContent = data.dispatched_orders || 0;
+            document.getElementById('fulfillmentRate').textContent = `${(data.fulfillment_rate || 0).toFixed(1)}%`;
+        }
+
+        function renderCharts(data) {
+            // Destroy existing charts
+            Object.values(charts).forEach(chart => chart.destroy());
+            charts = {};
+
+            // Order Status Chart
+            const statusCtx = document.getElementById('orderStatusChart').getContext('2d');
+            charts.status = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Draft', 'Confirmed', 'In Production', 'Ready', 'Dispatched', 'Completed'],
+                    datasets: [{
+                        data: data.orders_by_status || [5, 12, 18, 8, 22, 35],
+                        backgroundColor: ['#9CA3AF', '#3B82F6', '#F59E0B', '#8B5CF6', '#10B981', '#6366F1']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+
+            // Revenue Trend Chart
+            const trendCtx = document.getElementById('revenueTrendChart').getContext('2d');
+            charts.trend = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: data.trend_labels || ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Revenue ($)',
+                        data: data.revenue_trend || [45000, 52000, 48000, 58000, 62000, 68000],
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+
+            // Top Customers Chart
+            const customersCtx = document.getElementById('topCustomersChart').getContext('2d');
+            charts.customers = new Chart(customersCtx, {
+                type: 'bar',
+                data: {
+                    labels: data.top_customers_names || ['ABC Corp', 'XYZ Ltd', 'Fashion House', 'Retail Chain', 'Boutique'],
+                    datasets: [{
+                        label: 'Revenue ($)',
+                        data: data.top_customers_revenue || [85000, 72000, 65000, 58000, 45000],
+                        backgroundColor: '#6366F1'
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: true,
+                    indexAxis: 'y'
+                }
+            });
+
+            // Top Products Chart
+            const productsCtx = document.getElementById('topProductsChart').getContext('2d');
+            charts.products = new Chart(productsCtx, {
+                type: 'bar',
+                data: {
+                    labels: data.top_products_names || ['T-Shirt', 'Jeans', 'Polo', 'Dress Shirt', 'Pants'],
+                    datasets: [{
+                        label: 'Units Sold',
+                        data: data.top_products_units || [5200, 3800, 4100, 2900, 3300],
+                        backgroundColor: '#10B981'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+        }
+
+        function displayCustomerPerformance(data) {
+            const tbody = document.getElementById('customerTable');
+            tbody.innerHTML = '';
+
+            const customers = data.customer_performance || [
+                { name: 'ABC Corporation', orders: 24, revenue: 85000, avg_value: 3541.67, last_order: '2025-11-22' },
+                { name: 'XYZ Limited', orders: 18, revenue: 72000, avg_value: 4000.00, last_order: '2025-11-25' },
+                { name: 'Fashion House', orders: 21, revenue: 65000, avg_value: 3095.24, last_order: '2025-11-20' },
+                { name: 'Retail Chain', orders: 15, revenue: 58000, avg_value: 3866.67, last_order: '2025-11-26' },
+                { name: 'Boutique Store', orders: 12, revenue: 45000, avg_value: 3750.00, last_order: '2025-11-18' }
+            ];
+
+            customers.forEach(customer => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${customer.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${customer.orders}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">$${customer.revenue.toFixed(2)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">$${customer.avg_value.toFixed(2)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${customer.last_order}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function displayProductSales(data) {
+            const tbody = document.getElementById('productTable');
+            tbody.innerHTML = '';
+
+            const products = data.product_sales || [
+                { name: 'Cotton T-Shirt', units: 5200, revenue: 78000, avg_price: 15.00, growth: 12.5 },
+                { name: 'Denim Jeans', units: 3800, revenue: 114000, avg_price: 30.00, growth: 8.3 },
+                { name: 'Polo Shirt', units: 4100, revenue: 82000, avg_price: 20.00, growth: 15.2 },
+                { name: 'Dress Shirt', units: 2900, revenue: 87000, avg_price: 30.00, growth: -2.1 },
+                { name: 'Casual Pants', units: 3300, revenue: 82500, avg_price: 25.00, growth: 5.8 }
+            ];
+
+            products.forEach(product => {
+                const growthColor = product.growth >= 0 ? 'text-green-600' : 'text-red-600';
+                const growthIcon = product.growth >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${product.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${product.units}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">$${product.revenue.toFixed(2)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">$${product.avg_price.toFixed(2)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium ${growthColor}">
+                        <i class="fas ${growthIcon}"></i> ${Math.abs(product.growth).toFixed(1)}%
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function loadSampleData() {
+            const sampleData = {
+                total_orders: 90,
+                total_revenue: 325000,
+                avg_order_value: 3611,
+                dispatched_orders: 65,
+                fulfillment_rate: 72.2
+            };
+            updateKPIs(sampleData);
+            renderCharts(sampleData);
+            displayCustomerPerformance(sampleData);
+            displayProductSales(sampleData);
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (checkAuth()) {
+                // Set default date range (last 30 days)
+                const today = new Date();
+                const thirtyDaysAgo = new Date(today);
+                thirtyDaysAgo.setDate(today.getDate() - 30);
+                
+                document.getElementById('toDate').valueAsDate = today;
+                document.getElementById('fromDate').valueAsDate = thirtyDaysAgo;
+
+                await loadCustomers();
+                loadReports();
+            }
+        });
+    </script>
+</body>
+</html>

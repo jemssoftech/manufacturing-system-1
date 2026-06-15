@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Customer - Textile ERP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <nav class="bg-indigo-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-industry text-2xl"></i>
+                <h1 class="text-2xl font-bold">Textile ERP</h1>
+            </div>
+            <div class="flex items-center space-x-6">
+                <a href="../dashboard.html" class="hover:text-indigo-200">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <a href="customers.html" class="hover:text-indigo-200">
+                    <i class="fas fa-arrow-left"></i> Back to Customers
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-3xl mx-auto">
+            <!-- Page Header -->
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-gray-800">Add New Customer</h2>
+                <p class="text-gray-600">Create a new customer record</p>
+            </div>
+
+            <form id="createCustomerForm" onsubmit="submitCustomer(event)" class="space-y-6">
+                <!-- Basic Information -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-4">Basic Information</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Customer Code *</label>
+                            <input type="text" name="customer_code" required 
+                                   placeholder="e.g., CUST001"
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                            <p class="text-xs text-gray-500 mt-1">Unique identifier for the customer</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Customer Name *</label>
+                            <input type="text" name="name" required 
+                                   placeholder="e.g., ABC Textiles Ltd"
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Customer Type *</label>
+                            <select name="customer_type" required 
+                                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                                <option value="">Select Type...</option>
+                                <option value="wholesale">Wholesale</option>
+                                <option value="retail">Retail</option>
+                                <option value="distributor">Distributor</option>
+                                <option value="export">Export</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Status *</label>
+                            <select name="is_active" required 
+                                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                                <option value="true" selected>Active</option>
+                                <option value="false">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-4">Contact Information</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Contact Person</label>
+                            <input type="text" name="contact_person" 
+                                   placeholder="e.g., John Smith"
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                            <input type="email" name="email" 
+                                   placeholder="e.g., contact@abctextiles.com"
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                            <input type="text" name="phone" 
+                                   placeholder="e.g., +1-234-567-8900"
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Fax</label>
+                            <input type="text" name="fax" 
+                                   placeholder="e.g., +1-234-567-8901"
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div class="col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                            <textarea name="address" rows="3" 
+                                      placeholder="Full address with street, city, state, ZIP"
+                                      class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Business Details -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-4">Business Details</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Region</label>
+                            <input type="text" name="region" 
+                                   placeholder="e.g., North America, Europe, Asia"
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Credit Limit ($)</label>
+                            <input type="number" name="credit_limit" step="0.01" value="0" 
+                                   placeholder="e.g., 50000.00"
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Payment Terms (days)</label>
+                            <input type="number" name="payment_terms" value="30" 
+                                   placeholder="e.g., 30"
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                            <p class="text-xs text-gray-500 mt-1">Net payment days (e.g., Net 30)</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tax ID / VAT Number</label>
+                            <input type="text" name="tax_id" 
+                                   placeholder="e.g., 12-3456789"
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div class="col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                            <textarea name="notes" rows="3" 
+                                      placeholder="Any additional notes or special instructions"
+                                      class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Information -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-4">Financial Information (Optional)</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Bank Name</label>
+                            <input type="text" name="bank_name" 
+                                   placeholder="e.g., National Bank"
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Bank Account Number</label>
+                            <input type="text" name="bank_account" 
+                                   placeholder="e.g., 1234567890"
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Swift / IBAN</label>
+                            <input type="text" name="swift_code" 
+                                   placeholder="e.g., NATBUS12XXX"
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Currency</label>
+                            <select name="currency" 
+                                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                                <option value="USD" selected>USD - US Dollar</option>
+                                <option value="EUR">EUR - Euro</option>
+                                <option value="GBP">GBP - British Pound</option>
+                                <option value="INR">INR - Indian Rupee</option>
+                                <option value="CNY">CNY - Chinese Yuan</option>
+                                <option value="JPY">JPY - Japanese Yen</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex justify-end space-x-4">
+                    <a href="customers.html" 
+                       class="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                        Cancel
+                    </a>
+                    <button type="submit" 
+                            class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                        <i class="fas fa-save"></i> Create Customer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+
+        function getToken() {
+            return localStorage.getItem('token') || '';
+        }
+
+        function checkAuth() {
+            const token = getToken();
+            if (!token) {
+                window.location.href = '../login.html';
+                return false;
+            }
+            return true;
+        }
+
+        async function submitCustomer(event) {
+            event.preventDefault();
+            
+            if (!checkAuth()) return;
+
+            const formData = new FormData(event.target);
+            
+            const data = {
+                customer_code: formData.get('customer_code'),
+                name: formData.get('name'),
+                customer_type: formData.get('customer_type'),
+                contact_person: formData.get('contact_person') || null,
+                email: formData.get('email') || null,
+                phone: formData.get('phone') || null,
+                fax: formData.get('fax') || null,
+                address: formData.get('address') || null,
+                region: formData.get('region') || null,
+                credit_limit: parseFloat(formData.get('credit_limit')) || 0,
+                payment_terms: parseInt(formData.get('payment_terms')) || 30,
+                tax_id: formData.get('tax_id') || null,
+                notes: formData.get('notes') || null,
+                is_active: formData.get('is_active') === 'true'
+            };
+
+            // Add optional financial fields if provided
+            const bankName = formData.get('bank_name');
+            const bankAccount = formData.get('bank_account');
+            const swiftCode = formData.get('swift_code');
+            const currency = formData.get('currency');
+
+            if (bankName) data.bank_name = bankName;
+            if (bankAccount) data.bank_account = bankAccount;
+            if (swiftCode) data.swift_code = swiftCode;
+            if (currency) data.currency = currency;
+
+            try {
+                const response = await fetch(`${API_BASE}/sales/customers`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to create customer');
+                }
+
+                const result = await response.json();
+                alert(`Customer ${result.customer_code} created successfully!`);
+                window.location.href = 'customers.html';
+            } catch (error) {
+                console.error('Error creating customer:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+        });
+    </script>
+</body>
+</html>

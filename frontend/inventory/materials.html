@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Material Master - Textile ERP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <nav class="bg-indigo-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-industry text-2xl"></i>
+                <h1 class="text-2xl font-bold">Textile ERP</h1>
+            </div>
+            <div class="flex items-center space-x-6">
+                <a href="../dashboard.html" class="hover:text-indigo-200">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <a href="../procurement/supplier-list.html" class="hover:text-indigo-200">
+                    <i class="fas fa-shopping-cart"></i> Procurement
+                </a>
+                <a href="../inventory/stock-dashboard.html" class="hover:text-indigo-200">
+                    <i class="fas fa-boxes"></i> Inventory
+                </a>
+                <a href="../production/work-orders.html" class="hover:text-indigo-200">
+                    <i class="fas fa-cogs"></i> Production
+                </a>
+                <a href="../quality/qc-form.html" class="hover:text-indigo-200">
+                    <i class="fas fa-check-circle"></i> Quality
+                </a>
+                <a href="../sales/customers.html" class="hover:text-indigo-200">
+                    <i class="fas fa-chart-line"></i> Sales
+                </a>
+                <a href="../reports/reports-procurement.html" class="hover:text-indigo-200">
+                    <i class="fas fa-file-alt"></i> Reports
+                </a>
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-user-circle text-2xl"></i>
+                    <span id="userName">User</span>
+                </div>
+                <button onclick="logout()" class="hover:bg-indigo-700 px-3 py-1 rounded">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Page Header -->
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-800">Material Master</h2>
+                <p class="text-gray-600">Manage raw materials, fabrics, and finished goods</p>
+            </div>
+            <button onclick="showAddModal()" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700">
+                <i class="fas fa-plus"></i> Add Material
+            </button>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Total Materials</p>
+                        <p id="totalMaterials" class="text-2xl font-bold text-gray-800">0</p>
+                    </div>
+                    <i class="fas fa-boxes text-3xl text-blue-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Raw Materials</p>
+                        <p id="rawMaterials" class="text-2xl font-bold text-purple-600">0</p>
+                    </div>
+                    <i class="fas fa-cube text-3xl text-purple-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Fabrics</p>
+                        <p id="fabrics" class="text-2xl font-bold text-green-600">0</p>
+                    </div>
+                    <i class="fas fa-scroll text-3xl text-green-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Finished Goods</p>
+                        <p id="finishedGoods" class="text-2xl font-bold text-indigo-600">0</p>
+                    </div>
+                    <i class="fas fa-box-open text-3xl text-indigo-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Low Stock</p>
+                        <p id="lowStock" class="text-2xl font-bold text-red-600">0</p>
+                    </div>
+                    <i class="fas fa-exclamation-triangle text-3xl text-red-500"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                    <input type="text" id="searchInput" placeholder="Search by name or code..." 
+                           class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                    <select id="categoryFilter" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <option value="">All Categories</option>
+                        <option value="raw_material">Raw Material</option>
+                        <option value="fabric">Fabric</option>
+                        <option value="finished_goods">Finished Goods</option>
+                        <option value="accessories">Accessories</option>
+                        <option value="packaging">Packaging</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Unit of Measure</label>
+                    <select id="uomFilter" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <option value="">All UOM</option>
+                        <option value="kg">Kilogram (kg)</option>
+                        <option value="meter">Meter (m)</option>
+                        <option value="piece">Piece (pcs)</option>
+                        <option value="yard">Yard (yd)</option>
+                        <option value="roll">Roll</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Stock Status</label>
+                    <select id="stockFilter" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <option value="">All Stock</option>
+                        <option value="low">Low Stock</option>
+                        <option value="adequate">Adequate</option>
+                        <option value="overstocked">Overstocked</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-4">
+                <button onclick="loadMaterials()" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">
+                    <i class="fas fa-search"></i> Apply Filters
+                </button>
+                <button onclick="resetFilters()" class="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400 ml-2">
+                    <i class="fas fa-redo"></i> Reset
+                </button>
+            </div>
+        </div>
+
+        <!-- Materials Table -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Code</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">UOM</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Current Stock</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reorder Level</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Unit Price</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="materialsTable" class="bg-white divide-y divide-gray-200">
+                    <!-- Materials will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- No Data Message -->
+        <div id="noDataMessage" class="hidden text-center py-12">
+            <i class="fas fa-boxes text-6xl text-gray-300 mb-4"></i>
+            <p class="text-gray-500 text-lg">No materials found</p>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="hidden text-center py-12">
+            <i class="fas fa-spinner fa-spin text-4xl text-indigo-600"></i>
+            <p class="text-gray-600 mt-4">Loading materials...</p>
+        </div>
+    </div>
+
+    <!-- Add/Edit Material Modal -->
+    <div id="materialModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-[700px] shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modalTitle" class="text-xl font-bold">Add Material</h3>
+                <button onclick="closeModal()" class="text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="materialForm" onsubmit="saveMaterial(event)">
+                <input type="hidden" id="materialId">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Material Code *</label>
+                        <input type="text" id="materialCode" required 
+                               placeholder="e.g., MAT001"
+                               class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Name *</label>
+                        <input type="text" id="materialName" required 
+                               placeholder="e.g., Cotton Yarn"
+                               class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Category *</label>
+                        <select id="category" required 
+                                class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                            <option value="">Select Category...</option>
+                            <option value="raw_material">Raw Material</option>
+                            <option value="fabric">Fabric</option>
+                            <option value="finished_goods">Finished Goods</option>
+                            <option value="accessories">Accessories</option>
+                            <option value="packaging">Packaging</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Unit of Measure *</label>
+                        <select id="uom" required 
+                                class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                            <option value="">Select UOM...</option>
+                            <option value="kg">Kilogram (kg)</option>
+                            <option value="meter">Meter (m)</option>
+                            <option value="piece">Piece (pcs)</option>
+                            <option value="yard">Yard (yd)</option>
+                            <option value="roll">Roll</option>
+                            <option value="liter">Liter (L)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Unit Price ($)</label>
+                        <input type="number" id="unitPrice" step="0.01" value="0" 
+                               class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Reorder Level</label>
+                        <input type="number" id="reorderLevel" step="0.01" value="0" 
+                               class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Lead Time (days)</label>
+                        <input type="number" id="leadTime" value="0" 
+                               class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Storage Location</label>
+                        <input type="text" id="storageLocation" 
+                               placeholder="e.g., Warehouse A, Bin 23"
+                               class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <textarea id="description" rows="2" 
+                                  class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"></textarea>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Specifications</label>
+                        <textarea id="specifications" rows="2" 
+                                  placeholder="e.g., 30s Count, 100% Cotton"
+                                  class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"></textarea>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-4 mt-6">
+                    <button type="button" onclick="closeModal()" 
+                            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                        <i class="fas fa-save"></i> Save Material
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        let allMaterials = [];
+
+        function getToken() {
+            return localStorage.getItem('token') || '';
+        }
+
+        function checkAuth() {
+            const token = getToken();
+            if (!token) {
+                window.location.href = '../login.html';
+                return false;
+            }
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            document.getElementById('userName').textContent = user.username || '';
+            return true;
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '../login.html';
+        }
+
+        async function loadMaterials() {
+            if (!checkAuth()) return;
+
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const category = document.getElementById('categoryFilter').value;
+            const uom = document.getElementById('uomFilter').value;
+            const stockFilter = document.getElementById('stockFilter').value;
+
+            document.getElementById('loadingSpinner').classList.remove('hidden');
+            document.getElementById('noDataMessage').classList.add('hidden');
+
+            try {
+                const response = await fetch(`${API_BASE}/inventory/materials?limit=1000`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                allMaterials = await response.json();
+
+                // Apply filters
+                let filtered = allMaterials.filter(material => {
+                    const matchSearch = !search || 
+                        material.name.toLowerCase().includes(search) ||
+                        material.material_code.toLowerCase().includes(search);
+                    const matchCategory = !category || material.category === category;
+                    const matchUOM = !uom || material.unit_of_measure === uom;
+                    
+                    let matchStock = true;
+                    if (stockFilter === 'low') {
+                        matchStock = (material.current_stock || 0) <= (material.reorder_level || 0);
+                    } else if (stockFilter === 'adequate') {
+                        matchStock = (material.current_stock || 0) > (material.reorder_level || 0) && 
+                                    (material.current_stock || 0) < (material.reorder_level || 0) * 3;
+                    } else if (stockFilter === 'overstocked') {
+                        matchStock = (material.current_stock || 0) >= (material.reorder_level || 0) * 3;
+                    }
+                    
+                    return matchSearch && matchCategory && matchUOM && matchStock;
+                });
+
+                displayMaterials(filtered);
+                updateStatistics(allMaterials);
+            } catch (error) {
+                console.error('Error loading materials:', error);
+                alert('Failed to load materials');
+            } finally {
+                document.getElementById('loadingSpinner').classList.add('hidden');
+            }
+        }
+
+        function displayMaterials(materials) {
+            const tbody = document.getElementById('materialsTable');
+            tbody.innerHTML = '';
+
+            if (materials.length === 0) {
+                document.getElementById('noDataMessage').classList.remove('hidden');
+                return;
+            }
+
+            materials.forEach(material => {
+                const isLowStock = (material.current_stock || 0) <= (material.reorder_level || 0);
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        ${material.material_code}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${material.name}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        ${formatCategory(material.category)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        ${material.unit_of_measure}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium ${isLowStock ? 'text-red-600' : 'text-gray-900'}">
+                        ${(material.current_stock || 0).toFixed(2)}
+                        ${isLowStock ? '<i class="fas fa-exclamation-triangle ml-1"></i>' : ''}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        ${(material.reorder_level || 0).toFixed(2)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        $${(material.unit_price || 0).toFixed(2)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                        <button onclick="viewStock(${material.material_id})" 
+                                class="text-blue-600 hover:text-blue-800" title="View Stock">
+                            <i class="fas fa-box"></i>
+                        </button>
+                        <button onclick="editMaterial(${material.material_id})" 
+                                class="text-indigo-600 hover:text-indigo-800" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteMaterial(${material.material_id})" 
+                                class="text-red-600 hover:text-red-800" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function formatCategory(category) {
+            return category.split('_').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+        }
+
+        function updateStatistics(materials) {
+            const total = materials.length;
+            const rawMaterials = materials.filter(m => m.category === 'raw_material').length;
+            const fabrics = materials.filter(m => m.category === 'fabric').length;
+            const finishedGoods = materials.filter(m => m.category === 'finished_goods').length;
+            const lowStock = materials.filter(m => (m.current_stock || 0) <= (m.reorder_level || 0)).length;
+
+            document.getElementById('totalMaterials').textContent = total;
+            document.getElementById('rawMaterials').textContent = rawMaterials;
+            document.getElementById('fabrics').textContent = fabrics;
+            document.getElementById('finishedGoods').textContent = finishedGoods;
+            document.getElementById('lowStock').textContent = lowStock;
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('categoryFilter').value = '';
+            document.getElementById('uomFilter').value = '';
+            document.getElementById('stockFilter').value = '';
+            loadMaterials();
+        }
+
+        function showAddModal() {
+            document.getElementById('modalTitle').textContent = 'Add Material';
+            document.getElementById('materialForm').reset();
+            document.getElementById('materialId').value = '';
+            document.getElementById('materialModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('materialModal').classList.add('hidden');
+        }
+
+        function editMaterial(materialId) {
+            const material = allMaterials.find(m => m.material_id === materialId);
+            if (!material) return;
+
+            document.getElementById('modalTitle').textContent = 'Edit Material';
+            document.getElementById('materialId').value = material.material_id;
+            document.getElementById('materialCode').value = material.material_code;
+            document.getElementById('materialName').value = material.name;
+            document.getElementById('category').value = material.category;
+            document.getElementById('uom').value = material.unit_of_measure;
+            document.getElementById('unitPrice').value = material.unit_price || 0;
+            document.getElementById('reorderLevel').value = material.reorder_level || 0;
+            document.getElementById('leadTime').value = material.lead_time_days || 0;
+            document.getElementById('storageLocation').value = material.storage_location || '';
+            document.getElementById('description').value = material.description || '';
+            document.getElementById('specifications').value = material.specifications || '';
+
+            document.getElementById('materialModal').classList.remove('hidden');
+        }
+
+        async function saveMaterial(event) {
+            event.preventDefault();
+
+            const materialId = document.getElementById('materialId').value;
+            const data = {
+                material_code: document.getElementById('materialCode').value,
+                name: document.getElementById('materialName').value,
+                category: document.getElementById('category').value,
+                unit_of_measure: document.getElementById('uom').value,
+                unit_price: parseFloat(document.getElementById('unitPrice').value) || 0,
+                reorder_level: parseFloat(document.getElementById('reorderLevel').value) || 0,
+                lead_time_days: parseInt(document.getElementById('leadTime').value) || 0,
+                storage_location: document.getElementById('storageLocation').value || null,
+                description: document.getElementById('description').value || null,
+                specifications: document.getElementById('specifications').value || null
+            };
+
+            try {
+                const url = materialId ? 
+                    `${API_BASE}/inventory/materials/${materialId}` : 
+                    `${API_BASE}/inventory/materials`;
+                const method = materialId ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to save material');
+                }
+
+                alert(`Material ${materialId ? 'updated' : 'created'} successfully!`);
+                closeModal();
+                loadMaterials();
+            } catch (error) {
+                console.error('Error saving material:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        async function deleteMaterial(materialId) {
+            if (!confirm('Are you sure you want to delete this material?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/inventory/materials/${materialId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to delete material');
+                }
+
+                alert('Material deleted successfully!');
+                loadMaterials();
+            } catch (error) {
+                console.error('Error deleting material:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        function viewStock(materialId) {
+            window.location.href = `../inventory/stock-dashboard.html?material_id=${materialId}`;
+        }
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') loadMaterials();
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (checkAuth()) {
+                loadMaterials();
+            }
+        });
+    </script>
+</body>
+</html>

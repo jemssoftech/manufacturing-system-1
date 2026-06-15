@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procurement Reports - Textile ERP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <nav class="bg-indigo-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-industry text-2xl"></i>
+                <h1 class="text-2xl font-bold">Textile ERP</h1>
+            </div>
+            <div class="flex items-center space-x-6">
+                <a href="../dashboard.html" class="hover:text-indigo-200">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <a href="../procurement/supplier-list.html" class="hover:text-indigo-200">
+                    <i class="fas fa-shopping-cart"></i> Procurement
+                </a>
+                <a href="../inventory/stock-dashboard.html" class="hover:text-indigo-200">
+                    <i class="fas fa-boxes"></i> Inventory
+                </a>
+                <a href="../production/work-orders.html" class="hover:text-indigo-200">
+                    <i class="fas fa-cogs"></i> Production
+                </a>
+                <a href="../quality/qc-form.html" class="hover:text-indigo-200">
+                    <i class="fas fa-check-circle"></i> Quality
+                </a>
+                <a href="../sales/customers.html" class="hover:text-indigo-200">
+                    <i class="fas fa-chart-line"></i> Sales
+                </a>
+                <a href="../reports/reports-procurement.html" class="hover:text-indigo-200">
+                    <i class="fas fa-file-alt"></i> Reports
+                </a>
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-user-circle text-2xl"></i>
+                    <span id="userName">User</span>
+                </div>
+                <button onclick="logout()" class="hover:bg-indigo-700 px-3 py-1 rounded">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Page Header -->
+        <div class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-800">Procurement Reports</h2>
+            <p class="text-gray-600">Analyze purchase orders, suppliers, and procurement performance</p>
+        </div>
+
+        <!-- Date Range Filter -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="grid grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">From Date</label>
+                    <input type="date" id="fromDate" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">To Date</label>
+                    <input type="date" id="toDate" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Supplier</label>
+                    <select id="supplierFilter" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <option value="">All Suppliers</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button onclick="loadReports()" class="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
+                        <i class="fas fa-sync"></i> Generate Report
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Total POs</p>
+                        <p id="totalPOs" class="text-2xl font-bold text-gray-800">0</p>
+                    </div>
+                    <i class="fas fa-file-invoice text-3xl text-blue-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Total Value</p>
+                        <p id="totalValue" class="text-2xl font-bold text-green-600">$0</p>
+                    </div>
+                    <i class="fas fa-dollar-sign text-3xl text-green-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Avg PO Value</p>
+                        <p id="avgValue" class="text-2xl font-bold text-indigo-600">$0</p>
+                    </div>
+                    <i class="fas fa-chart-line text-3xl text-indigo-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">On-Time Delivery</p>
+                        <p id="onTimeRate" class="text-2xl font-bold text-purple-600">0%</p>
+                    </div>
+                    <i class="fas fa-truck text-3xl text-purple-500"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 1 -->
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">PO Status Distribution</h3>
+                <canvas id="poStatusChart"></canvas>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Purchase Trend</h3>
+                <canvas id="purchaseTrendChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Charts Row 2 -->
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Top Suppliers by Value</h3>
+                <canvas id="topSuppliersChart"></canvas>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Material Category Distribution</h3>
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Top Items Table -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold mb-4">Top Purchased Materials</h3>
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Material</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Quantity</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Value</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Avg Price</th>
+                    </tr>
+                </thead>
+                <tbody id="topMaterialsTable" class="bg-white divide-y divide-gray-200">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        let charts = {};
+
+        function getToken() {
+            return localStorage.getItem('token') || '';
+        }
+
+        function checkAuth() {
+            const token = getToken();
+            if (!token) {
+                window.location.href = '../login.html';
+                return false;
+            }
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            document.getElementById('userName').textContent = user.username || '';
+            return true;
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '../login.html';
+        }
+
+        async function loadSuppliers() {
+            try {
+                const response = await fetch(`${API_BASE}/procurement/suppliers?limit=1000`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const suppliers = await response.json();
+                
+                const select = document.getElementById('supplierFilter');
+                suppliers.forEach(supplier => {
+                    const option = document.createElement('option');
+                    option.value = supplier.supplier_id;
+                    option.textContent = supplier.name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading suppliers:', error);
+            }
+        }
+
+        async function loadReports() {
+            if (!checkAuth()) return;
+
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+            const supplierId = document.getElementById('supplierFilter').value;
+
+            try {
+                let url = `${API_BASE}/reports/procurement-report?`;
+                if (fromDate) url += `from_date=${fromDate}&`;
+                if (toDate) url += `to_date=${toDate}&`;
+                if (supplierId) url += `supplier_id=${supplierId}&`;
+
+                const response = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const data = await response.json();
+
+                updateKPIs(data);
+                renderCharts(data);
+                displayTopMaterials(data);
+            } catch (error) {
+                console.error('Error loading reports:', error);
+                alert('Failed to load reports. Using sample data.');
+                loadSampleData();
+            }
+        }
+
+        function updateKPIs(data) {
+            document.getElementById('totalPOs').textContent = data.total_pos || 0;
+            document.getElementById('totalValue').textContent = `$${(data.total_value || 0).toFixed(2)}`;
+            document.getElementById('avgValue').textContent = `$${(data.avg_po_value || 0).toFixed(2)}`;
+            document.getElementById('onTimeRate').textContent = `${(data.on_time_delivery_rate || 0).toFixed(1)}%`;
+        }
+
+        function renderCharts(data) {
+            // Destroy existing charts
+            Object.values(charts).forEach(chart => chart.destroy());
+            charts = {};
+
+            // PO Status Chart
+            const statusCtx = document.getElementById('poStatusChart').getContext('2d');
+            charts.poStatus = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Draft', 'Submitted', 'Approved', 'Received', 'Rejected'],
+                    datasets: [{
+                        data: data.po_by_status || [10, 5, 25, 35, 3],
+                        backgroundColor: ['#9CA3AF', '#3B82F6', '#10B981', '#6366F1', '#EF4444']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+
+            // Purchase Trend Chart
+            const trendCtx = document.getElementById('purchaseTrendChart').getContext('2d');
+            charts.trend = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: data.trend_labels || ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Purchase Value ($)',
+                        data: data.trend_values || [12000, 15000, 18000, 14000, 22000, 25000],
+                        borderColor: '#6366F1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+
+            // Top Suppliers Chart
+            const suppliersCtx = document.getElementById('topSuppliersChart').getContext('2d');
+            charts.suppliers = new Chart(suppliersCtx, {
+                type: 'bar',
+                data: {
+                    labels: data.top_suppliers_names || ['Supplier A', 'Supplier B', 'Supplier C', 'Supplier D', 'Supplier E'],
+                    datasets: [{
+                        label: 'Purchase Value ($)',
+                        data: data.top_suppliers_values || [45000, 38000, 32000, 28000, 22000],
+                        backgroundColor: '#10B981'
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: true,
+                    indexAxis: 'y'
+                }
+            });
+
+            // Category Distribution Chart
+            const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+            charts.category = new Chart(categoryCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Raw Material', 'Fabric', 'Accessories', 'Packaging', 'Others'],
+                    datasets: [{
+                        data: data.category_distribution || [45, 30, 15, 7, 3],
+                        backgroundColor: ['#8B5CF6', '#10B981', '#F59E0B', '#EF4444', '#6B7280']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+        }
+
+        function displayTopMaterials(data) {
+            const tbody = document.getElementById('topMaterialsTable');
+            tbody.innerHTML = '';
+
+            const materials = data.top_materials || [
+                { name: 'Cotton Yarn 30s', category: 'Raw Material', quantity: 5000, value: 45000, avg_price: 9.00 },
+                { name: 'Polyester Fabric', category: 'Fabric', quantity: 3500, value: 38500, avg_price: 11.00 },
+                { name: 'Denim Fabric', category: 'Fabric', quantity: 2800, value: 35000, avg_price: 12.50 },
+                { name: 'Zippers', category: 'Accessories', quantity: 10000, value: 5000, avg_price: 0.50 },
+                { name: 'Buttons', category: 'Accessories', quantity: 15000, value: 3000, avg_price: 0.20 }
+            ];
+
+            materials.forEach(material => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${material.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${material.category}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${material.quantity.toFixed(2)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">$${material.value.toFixed(2)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">$${material.avg_price.toFixed(2)}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function loadSampleData() {
+            const sampleData = {
+                total_pos: 78,
+                total_value: 165000,
+                avg_po_value: 2115,
+                on_time_delivery_rate: 87.5
+            };
+            updateKPIs(sampleData);
+            renderCharts(sampleData);
+            displayTopMaterials(sampleData);
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (checkAuth()) {
+                // Set default date range (last 30 days)
+                const today = new Date();
+                const thirtyDaysAgo = new Date(today);
+                thirtyDaysAgo.setDate(today.getDate() - 30);
+                
+                document.getElementById('toDate').valueAsDate = today;
+                document.getElementById('fromDate').valueAsDate = thirtyDaysAgo;
+
+                await loadSuppliers();
+                loadReports();
+            }
+        });
+    </script>
+</body>
+</html>

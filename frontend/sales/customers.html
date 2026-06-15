@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Management - Textile ERP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <nav class="bg-indigo-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-industry text-2xl"></i>
+                <h1 class="text-2xl font-bold">Textile ERP</h1>
+            </div>
+            <div class="flex items-center space-x-6">
+                <a href="../dashboard.html" class="hover:text-indigo-200">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <a href="../procurement/supplier-list.html" class="hover:text-indigo-200">
+                    <i class="fas fa-shopping-cart"></i> Procurement
+                </a>
+                <a href="../inventory/stock-dashboard.html" class="hover:text-indigo-200">
+                    <i class="fas fa-boxes"></i> Inventory
+                </a>
+                <a href="../production/work-orders.html" class="hover:text-indigo-200">
+                    <i class="fas fa-cogs"></i> Production
+                </a>
+                <a href="../quality/qc-form.html" class="hover:text-indigo-200">
+                    <i class="fas fa-check-circle"></i> Quality
+                </a>
+                <a href="../sales/customers.html" class="hover:text-indigo-200">
+                    <i class="fas fa-chart-line"></i> Sales
+                </a>
+                <a href="../reports/reports-procurement.html" class="hover:text-indigo-200">
+                    <i class="fas fa-file-alt"></i> Reports
+                </a>
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-user-circle text-2xl"></i>
+                    <span id="userName">User</span>
+                </div>
+                <button onclick="logout()" class="hover:bg-indigo-700 px-3 py-1 rounded">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Page Header -->
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-800">Customer Management</h2>
+                <p class="text-gray-600">Manage customer records and information</p>
+            </div>
+            <a href="create-customer.html" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700">
+                <i class="fas fa-plus"></i> Add Customer
+            </a>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Total Customers</p>
+                        <p id="totalCustomers" class="text-2xl font-bold text-gray-800">0</p>
+                    </div>
+                    <i class="fas fa-users text-3xl text-blue-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Active Customers</p>
+                        <p id="activeCustomers" class="text-2xl font-bold text-green-600">0</p>
+                    </div>
+                    <i class="fas fa-check-circle text-3xl text-green-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Total Credit Limit</p>
+                        <p id="totalCreditLimit" class="text-2xl font-bold text-indigo-600">$0</p>
+                    </div>
+                    <i class="fas fa-credit-card text-3xl text-indigo-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Outstanding Amount</p>
+                        <p id="totalOutstanding" class="text-2xl font-bold text-orange-600">$0</p>
+                    </div>
+                    <i class="fas fa-dollar-sign text-3xl text-orange-500"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                    <input type="text" id="searchInput" placeholder="Search by name or code..." 
+                           class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Region</label>
+                    <select id="regionFilter" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <option value="">All Regions</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Customer Type</label>
+                    <select id="typeFilter" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <option value="">All Types</option>
+                        <option value="wholesale">Wholesale</option>
+                        <option value="retail">Retail</option>
+                        <option value="distributor">Distributor</option>
+                        <option value="export">Export</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <select id="statusFilter" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-4">
+                <button onclick="loadCustomers()" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">
+                    <i class="fas fa-search"></i> Apply Filters
+                </button>
+                <button onclick="resetFilters()" class="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400 ml-2">
+                    <i class="fas fa-redo"></i> Reset
+                </button>
+            </div>
+        </div>
+
+        <!-- Customers Table -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Code</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contact Person</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Region</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Credit Limit</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="customersTable" class="bg-white divide-y divide-gray-200">
+                    <!-- Customers will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- No Data Message -->
+        <div id="noDataMessage" class="hidden text-center py-12">
+            <i class="fas fa-users text-6xl text-gray-300 mb-4"></i>
+            <p class="text-gray-500 text-lg">No customers found</p>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="hidden text-center py-12">
+            <i class="fas fa-spinner fa-spin text-4xl text-indigo-600"></i>
+            <p class="text-gray-600 mt-4">Loading customers...</p>
+        </div>
+    </div>
+
+    <!-- Edit Customer Modal -->
+    <div id="editModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-[600px] shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">Edit Customer</h3>
+                <button onclick="closeEditModal()" class="text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="editCustomerForm" onsubmit="updateCustomer(event)">
+                <input type="hidden" id="editCustomerId">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Customer Code *</label>
+                        <input type="text" id="editCustomerCode" required 
+                               class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Name *</label>
+                        <input type="text" id="editName" required 
+                               class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Contact Person</label>
+                        <input type="text" id="editContactPerson" 
+                               class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <input type="email" id="editEmail" 
+                               class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                        <input type="text" id="editPhone" 
+                               class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Credit Limit</label>
+                        <input type="number" id="editCreditLimit" step="0.01" 
+                               class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Region</label>
+                        <input type="text" id="editRegion" 
+                               class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Customer Type</label>
+                        <select id="editCustomerType" 
+                                class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                            <option value="wholesale">Wholesale</option>
+                            <option value="retail">Retail</option>
+                            <option value="distributor">Distributor</option>
+                            <option value="export">Export</option>
+                        </select>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                        <textarea id="editAddress" rows="2" 
+                                  class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <select id="editStatus" 
+                                class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-4 mt-6">
+                    <button type="button" onclick="closeEditModal()" 
+                            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                        Update Customer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        let allCustomers = [];
+        let regions = new Set();
+
+        function getToken() {
+            return localStorage.getItem('token') || '';
+        }
+
+        function checkAuth() {
+            const token = getToken();
+            if (!token) {
+                window.location.href = '../login.html';
+                return false;
+            }
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            document.getElementById('userName').textContent = user.username || '';
+            return true;
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '../login.html';
+        }
+
+        async function loadCustomers() {
+            if (!checkAuth()) return;
+
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const region = document.getElementById('regionFilter').value;
+            const type = document.getElementById('typeFilter').value;
+            const status = document.getElementById('statusFilter').value;
+
+            document.getElementById('loadingSpinner').classList.remove('hidden');
+            document.getElementById('noDataMessage').classList.add('hidden');
+
+            try {
+                const response = await fetch(`${API_BASE}/sales/customers?limit=1000`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                allCustomers = await response.json();
+
+                // Extract regions
+                regions.clear();
+                allCustomers.forEach(c => {
+                    if (c.region) regions.add(c.region);
+                });
+                updateRegionFilter();
+
+                // Apply filters
+                let filtered = allCustomers.filter(customer => {
+                    const matchSearch = !search || 
+                        customer.name.toLowerCase().includes(search) ||
+                        customer.customer_code.toLowerCase().includes(search) ||
+                        (customer.email && customer.email.toLowerCase().includes(search));
+                    const matchRegion = !region || customer.region === region;
+                    const matchType = !type || customer.customer_type === type;
+                    const matchStatus = !status || (customer.is_active && status === 'active') || (!customer.is_active && status === 'inactive');
+                    
+                    return matchSearch && matchRegion && matchType && matchStatus;
+                });
+
+                displayCustomers(filtered);
+                updateStatistics(filtered);
+            } catch (error) {
+                console.error('Error loading customers:', error);
+                alert('Failed to load customers');
+            } finally {
+                document.getElementById('loadingSpinner').classList.add('hidden');
+            }
+        }
+
+        function updateRegionFilter() {
+            const select = document.getElementById('regionFilter');
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">All Regions</option>';
+            
+            Array.from(regions).sort().forEach(region => {
+                const option = document.createElement('option');
+                option.value = region;
+                option.textContent = region;
+                select.appendChild(option);
+            });
+            
+            select.value = currentValue;
+        }
+
+        function displayCustomers(customers) {
+            const tbody = document.getElementById('customersTable');
+            tbody.innerHTML = '';
+
+            if (customers.length === 0) {
+                document.getElementById('noDataMessage').classList.remove('hidden');
+                return;
+            }
+
+            customers.forEach(customer => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        ${customer.customer_code}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${customer.name}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        ${customer.contact_person || '-'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        ${customer.email || '-'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        ${customer.phone || '-'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        ${customer.region || '-'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        $${(customer.credit_limit || 0).toFixed(2)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs rounded-full ${customer.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            ${customer.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                        <button onclick="viewOrders(${customer.customer_id})" 
+                                class="text-blue-600 hover:text-blue-800" title="View Orders">
+                            <i class="fas fa-shopping-cart"></i>
+                        </button>
+                        <button onclick="editCustomer(${customer.customer_id})" 
+                                class="text-indigo-600 hover:text-indigo-800" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteCustomer(${customer.customer_id})" 
+                                class="text-red-600 hover:text-red-800" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateStatistics(customers) {
+            const total = customers.length;
+            const active = customers.filter(c => c.is_active).length;
+            const totalCredit = customers.reduce((sum, c) => sum + (c.credit_limit || 0), 0);
+            const totalOutstanding = customers.reduce((sum, c) => sum + (c.outstanding_amount || 0), 0);
+
+            document.getElementById('totalCustomers').textContent = total;
+            document.getElementById('activeCustomers').textContent = active;
+            document.getElementById('totalCreditLimit').textContent = `$${totalCredit.toFixed(2)}`;
+            document.getElementById('totalOutstanding').textContent = `$${totalOutstanding.toFixed(2)}`;
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('regionFilter').value = '';
+            document.getElementById('typeFilter').value = '';
+            document.getElementById('statusFilter').value = '';
+            loadCustomers();
+        }
+
+        function viewOrders(customerId) {
+            window.location.href = `sales-orders.html?customer_id=${customerId}`;
+        }
+
+        function editCustomer(customerId) {
+            const customer = allCustomers.find(c => c.customer_id === customerId);
+            if (!customer) return;
+
+            document.getElementById('editCustomerId').value = customer.customer_id;
+            document.getElementById('editCustomerCode').value = customer.customer_code;
+            document.getElementById('editName').value = customer.name;
+            document.getElementById('editContactPerson').value = customer.contact_person || '';
+            document.getElementById('editEmail').value = customer.email || '';
+            document.getElementById('editPhone').value = customer.phone || '';
+            document.getElementById('editCreditLimit').value = customer.credit_limit || 0;
+            document.getElementById('editRegion').value = customer.region || '';
+            document.getElementById('editCustomerType').value = customer.customer_type || 'wholesale';
+            document.getElementById('editAddress').value = customer.address || '';
+            document.getElementById('editStatus').value = customer.is_active ? 'active' : 'inactive';
+
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+
+        async function updateCustomer(event) {
+            event.preventDefault();
+
+            const customerId = document.getElementById('editCustomerId').value;
+            const data = {
+                customer_code: document.getElementById('editCustomerCode').value,
+                name: document.getElementById('editName').value,
+                contact_person: document.getElementById('editContactPerson').value || null,
+                email: document.getElementById('editEmail').value || null,
+                phone: document.getElementById('editPhone').value || null,
+                credit_limit: parseFloat(document.getElementById('editCreditLimit').value) || 0,
+                region: document.getElementById('editRegion').value || null,
+                customer_type: document.getElementById('editCustomerType').value,
+                address: document.getElementById('editAddress').value || null,
+                is_active: document.getElementById('editStatus').value === 'active'
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/sales/customers/${customerId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to update customer');
+                }
+
+                alert('Customer updated successfully!');
+                closeEditModal();
+                loadCustomers();
+            } catch (error) {
+                console.error('Error updating customer:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        async function deleteCustomer(customerId) {
+            if (!confirm('Are you sure you want to delete this customer?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/sales/customers/${customerId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to delete customer');
+                }
+
+                alert('Customer deleted successfully!');
+                loadCustomers();
+            } catch (error) {
+                console.error('Error deleting customer:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') loadCustomers();
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (checkAuth()) {
+                loadCustomers();
+            }
+        });
+    </script>
+</body>
+</html>

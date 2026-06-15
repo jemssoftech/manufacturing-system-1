@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Orders - Textile ERP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <nav class="bg-indigo-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-industry text-2xl"></i>
+                <h1 class="text-2xl font-bold">Textile ERP</h1>
+            </div>
+            <div class="flex items-center space-x-6">
+                <a href="../dashboard.html" class="hover:text-indigo-200">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <span id="userName" class="text-sm"></span>
+                <button onclick="logout()" class="hover:text-indigo-200">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Page Header -->
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-800">Purchase Orders</h2>
+                <p class="text-gray-600">Manage and track purchase orders</p>
+            </div>
+            <a href="create-po.html" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700">
+                <i class="fas fa-plus"></i> Create PO
+            </a>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Total POs</p>
+                        <p id="totalPOs" class="text-2xl font-bold text-gray-800">0</p>
+                    </div>
+                    <i class="fas fa-file-invoice text-3xl text-blue-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Draft</p>
+                        <p id="draftPOs" class="text-2xl font-bold text-gray-500">0</p>
+                    </div>
+                    <i class="fas fa-edit text-3xl text-gray-400"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Approved</p>
+                        <p id="approvedPOs" class="text-2xl font-bold text-green-600">0</p>
+                    </div>
+                    <i class="fas fa-check-circle text-3xl text-green-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Received</p>
+                        <p id="receivedPOs" class="text-2xl font-bold text-indigo-600">0</p>
+                    </div>
+                    <i class="fas fa-box text-3xl text-indigo-500"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Total Value</p>
+                        <p id="totalValue" class="text-2xl font-bold text-orange-600">$0</p>
+                    </div>
+                    <i class="fas fa-dollar-sign text-3xl text-orange-500"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                    <input type="text" id="searchInput" placeholder="Search by PO number..." 
+                           class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <select id="statusFilter" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <option value="">All Status</option>
+                        <option value="draft">Draft</option>
+                        <option value="submitted">Submitted</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="partially_received">Partially Received</option>
+                        <option value="received">Received</option>
+                        <option value="closed">Closed</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Supplier</label>
+                    <select id="supplierFilter" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <option value="">All Suppliers</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">From Date</label>
+                    <input type="date" id="fromDate" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">To Date</label>
+                    <input type="date" id="toDate" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+            </div>
+            <div class="mt-4">
+                <button onclick="loadPurchaseOrders()" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">
+                    <i class="fas fa-search"></i> Apply Filters
+                </button>
+                <button onclick="resetFilters()" class="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400 ml-2">
+                    <i class="fas fa-redo"></i> Reset
+                </button>
+            </div>
+        </div>
+
+        <!-- Purchase Orders Table -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">PO Number</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Supplier</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Expected Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Amount</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="poTable" class="bg-white divide-y divide-gray-200">
+                    <!-- POs will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- No Data Message -->
+        <div id="noDataMessage" class="hidden text-center py-12">
+            <i class="fas fa-file-invoice text-6xl text-gray-300 mb-4"></i>
+            <p class="text-gray-500 text-lg">No purchase orders found</p>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="hidden text-center py-12">
+            <i class="fas fa-spinner fa-spin text-4xl text-indigo-600"></i>
+            <p class="text-gray-600 mt-4">Loading purchase orders...</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        let allPOs = [];
+        let suppliers = [];
+
+        function getToken() {
+            return localStorage.getItem('token') || '';
+        }
+
+        function checkAuth() {
+            const token = getToken();
+            if (!token) {
+                window.location.href = '../login.html';
+                return false;
+            }
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            document.getElementById('userName').textContent = user.username || '';
+            return true;
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '../login.html';
+        }
+
+        async function loadSuppliers() {
+            try {
+                const response = await fetch(`${API_BASE}/procurement/suppliers?limit=1000`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                suppliers = await response.json();
+                
+                const select = document.getElementById('supplierFilter');
+                suppliers.forEach(supplier => {
+                    const option = document.createElement('option');
+                    option.value = supplier.supplier_id;
+                    option.textContent = `${supplier.supplier_code} - ${supplier.name}`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading suppliers:', error);
+            }
+        }
+
+        async function loadPurchaseOrders() {
+            if (!checkAuth()) return;
+
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const status = document.getElementById('statusFilter').value;
+            const supplierId = document.getElementById('supplierFilter').value;
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+
+            document.getElementById('loadingSpinner').classList.remove('hidden');
+            document.getElementById('noDataMessage').classList.add('hidden');
+
+            try {
+                const response = await fetch(`${API_BASE}/procurement/purchase-orders?limit=1000`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                allPOs = await response.json();
+
+                // Apply filters
+                let filtered = allPOs.filter(po => {
+                    const matchSearch = !search || po.po_number.toLowerCase().includes(search);
+                    const matchStatus = !status || po.status === status;
+                    const matchSupplier = !supplierId || po.supplier_id == supplierId;
+                    const matchFromDate = !fromDate || new Date(po.order_date) >= new Date(fromDate);
+                    const matchToDate = !toDate || new Date(po.order_date) <= new Date(toDate);
+                    
+                    return matchSearch && matchStatus && matchSupplier && matchFromDate && matchToDate;
+                });
+
+                displayPurchaseOrders(filtered);
+                updateStatistics(filtered);
+            } catch (error) {
+                console.error('Error loading purchase orders:', error);
+                alert('Failed to load purchase orders');
+            } finally {
+                document.getElementById('loadingSpinner').classList.add('hidden');
+            }
+        }
+
+        function displayPurchaseOrders(pos) {
+            const tbody = document.getElementById('poTable');
+            tbody.innerHTML = '';
+
+            if (pos.length === 0) {
+                document.getElementById('noDataMessage').classList.remove('hidden');
+                return;
+            }
+
+            pos.forEach(po => {
+                const supplier = suppliers.find(s => s.supplier_id === po.supplier_id);
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">
+                        <a href="po-details.html?id=${po.po_id}" class="hover:underline">${po.po_number}</a>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${supplier ? supplier.name : 'N/A'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        ${new Date(po.order_date).toLocaleDateString()}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        ${po.expected_delivery_date ? new Date(po.expected_delivery_date).toLocaleDateString() : '-'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        $${(po.total_amount || 0).toFixed(2)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        ${getStatusBadge(po.status)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                        <a href="po-details.html?id=${po.po_id}" class="text-indigo-600 hover:text-indigo-800" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        ${getActionButtons(po)}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function getStatusBadge(status) {
+            const badges = {
+                'draft': '<span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">Draft</span>',
+                'submitted': '<span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">Submitted</span>',
+                'approved': '<span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Approved</span>',
+                'rejected': '<span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">Rejected</span>',
+                'partially_received': '<span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Partially Received</span>',
+                'received': '<span class="px-2 py-1 text-xs rounded-full bg-indigo-100 text-indigo-800">Received</span>',
+                'closed': '<span class="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800">Closed</span>'
+            };
+            return badges[status] || '<span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">Unknown</span>';
+        }
+
+        function getActionButtons(po) {
+            let buttons = '';
+            
+            if (po.status === 'draft') {
+                buttons += `<button onclick="submitPO(${po.po_id})" class="text-blue-600 hover:text-blue-800" title="Submit">
+                    <i class="fas fa-paper-plane"></i>
+                </button>`;
+            }
+            
+            if (po.status === 'submitted') {
+                buttons += `<button onclick="approvePO(${po.po_id})" class="text-green-600 hover:text-green-800" title="Approve">
+                    <i class="fas fa-check"></i>
+                </button>`;
+                buttons += `<button onclick="rejectPO(${po.po_id})" class="text-red-600 hover:text-red-800 ml-2" title="Reject">
+                    <i class="fas fa-times"></i>
+                </button>`;
+            }
+            
+            if (po.status === 'approved' || po.status === 'partially_received') {
+                buttons += `<button onclick="receivePO(${po.po_id})" class="text-indigo-600 hover:text-indigo-800" title="Receive Goods">
+                    <i class="fas fa-truck"></i>
+                </button>`;
+            }
+            
+            return buttons;
+        }
+
+        function updateStatistics(pos) {
+            const total = pos.length;
+            const draft = pos.filter(p => p.status === 'draft').length;
+            const approved = pos.filter(p => p.status === 'approved').length;
+            const received = pos.filter(p => p.status === 'received').length;
+            const totalValue = pos.reduce((sum, p) => sum + (p.total_amount || 0), 0);
+
+            document.getElementById('totalPOs').textContent = total;
+            document.getElementById('draftPOs').textContent = draft;
+            document.getElementById('approvedPOs').textContent = approved;
+            document.getElementById('receivedPOs').textContent = received;
+            document.getElementById('totalValue').textContent = `$${totalValue.toFixed(2)}`;
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('supplierFilter').value = '';
+            document.getElementById('fromDate').value = '';
+            document.getElementById('toDate').value = '';
+            loadPurchaseOrders();
+        }
+
+        async function submitPO(poId) {
+            if (!confirm('Submit this PO for approval?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/procurement/purchase-orders/${poId}/submit`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to submit PO');
+                }
+
+                alert('PO submitted successfully!');
+                loadPurchaseOrders();
+            } catch (error) {
+                console.error('Error submitting PO:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        async function approvePO(poId) {
+            if (!confirm('Approve this PO?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/procurement/purchase-orders/${poId}/approve`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to approve PO');
+                }
+
+                alert('PO approved successfully!');
+                loadPurchaseOrders();
+            } catch (error) {
+                console.error('Error approving PO:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        async function rejectPO(poId) {
+            const reason = prompt('Enter rejection reason:');
+            if (!reason) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/procurement/purchase-orders/${poId}/reject`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ reason })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to reject PO');
+                }
+
+                alert('PO rejected!');
+                loadPurchaseOrders();
+            } catch (error) {
+                console.error('Error rejecting PO:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        function receivePO(poId) {
+            window.location.href = `po-details.html?id=${poId}&action=receive`;
+        }
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') loadPurchaseOrders();
+        });
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (checkAuth()) {
+                await loadSuppliers();
+                loadPurchaseOrders();
+            }
+        });
+    </script>
+</body>
+</html>
